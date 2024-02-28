@@ -738,9 +738,10 @@ if(obj.list){
 
 
     function updateWeeklyScheduleDate() {
+        let dSamp= new Date();dSamp =(dSamp.getMonth()+1)+"/"+dSamp.getDate()+"/"+dSamp.getFullYear(),dSamp=new Date(dSamp).getTime();
         for (let i = 0; i < 7; i++) {
-            let day = new Date(new Date(new Date().toLocaleDateString()).getTime() + (86400000 * i));
-            console.log("javad BUG : day",day,"WEEKLY_SCHEDULE:",WEEKLY_SCHEDULE,"day.getDay():",day.getDay(),"getKeyByValue(WEEKLY_SCHEDULE, dayOfWeek, day.getDay()):",getKeyByValue(WEEKLY_SCHEDULE, "dayOfWeek", day.getDay()));
+            let day = new Date(dSamp + (86400000 * i));
+            console.log("javad BUG : day:",day,"WEEKLY_SCHEDULE:",WEEKLY_SCHEDULE,"day.getDay():",day.getDay(),"getKeyByValue(WEEKLY_SCHEDULE, dayOfWeek, day.getDay()):",getKeyByValue(WEEKLY_SCHEDULE, "dayOfWeek", day.getDay()));
             let change = getKeyByValue(WEEKLY_SCHEDULE, "dayOfWeek", day.getDay());
             change.baseDate = day.getTime();
         }
