@@ -937,8 +937,7 @@ if(obj.list){
         let date =s61GetDateLongByStartingDay();
         let thisDay = date + (dayIndex * 86400000);
         let nextDay = date + ((dayIndex + 1) * 86400000);
-//        let day = new Date(thisDay).toLocaleDateString('fa-IR');
-        let day = s61GetDateLongByStartingDay(thisDay).toLocaleDateString('fa-IR');
+        let day = new Date(thisDay).toLocaleDateString('fa-IR');
         let dayOfWeek = new Date(thisDay).getDay();
         return {thisDay, nextDay, day, dayOfWeek}
     }
