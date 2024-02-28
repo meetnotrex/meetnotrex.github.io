@@ -160,7 +160,10 @@ let textFitSizer2 = (element, isItParent=false, exceptedWidth = 0, minFontsize =
             e.add(c);
         }
     }
-
+    function s61GetDateLongByStartingDay(longDayValue){
+        let dSamp= (longDayValue?new Date(longDayValue):new Date());dSamp =(dSamp.getMonth()+1)+"/"+dSamp.getDate()+"/"+dSamp.getFullYear(),dSamp=new Date(dSamp).getTime();
+        return dSamp;
+    }
     function s61Init() {
 
         var s61css = document.createElement("link");
@@ -738,7 +741,7 @@ if(obj.list){
 
 
     function updateWeeklyScheduleDate() {
-        let dSamp= new Date();dSamp =(dSamp.getMonth()+1)+"/"+dSamp.getDate()+"/"+dSamp.getFullYear(),dSamp=new Date(dSamp).getTime();
+        let dSamp =s61GetDateLongByStartingDay();
         for (let i = 0; i < 7; i++) {
             let day = new Date(dSamp + (86400000 * i));
             console.log("javad BUG : day:",day,"WEEKLY_SCHEDULE:",WEEKLY_SCHEDULE,"day.getDay():",day.getDay(),"getKeyByValue(WEEKLY_SCHEDULE, dayOfWeek, day.getDay()):",getKeyByValue(WEEKLY_SCHEDULE, "dayOfWeek", day.getDay()));
@@ -930,10 +933,12 @@ if(obj.list){
 
 
     function getDateInfo(dayIndex) {
-        let date = new Date(new Date().toLocaleDateString('IR')).getTime();
+//        let date = new Date(new Date().toLocaleDateString('IR')).getTime();
+        let date =s61GetDateLongByStartingDay();
         let thisDay = date + (dayIndex * 86400000);
         let nextDay = date + ((dayIndex + 1) * 86400000);
-        let day = new Date(thisDay).toLocaleDateString('fa-IR');
+//        let day = new Date(thisDay).toLocaleDateString('fa-IR');
+        let day = s61GetDateLongByStartingDay(thisDay).toLocaleDateString('fa-IR');
         let dayOfWeek = new Date(thisDay).getDay();
         return {thisDay, nextDay, day, dayOfWeek}
     }
@@ -1075,9 +1080,9 @@ if(obj.list){
 
 
     function createGoogleCalendarCustomeTime(time) {
-        let date = new Date(time);
-
-        let day = String(date.toLocaleDateString()).split("/"); // ? ['8', '27', '2023'] sample return
+        let date = new Date(time);date =(date.getMonth()+1)+"/"+date.getDate()+"/"+date.getFullYear();
+//        let day = String(date.toLocaleDateString()).split("/"); // ? ['8', '27', '2023'] sample return
+        let day = date.split("/"); // ? ['8', '27', '2023'] sample return
         day = day[2] + "" + ((day[0].length == 1) ? "0" + day[0] : day[0]) + ((day[1].length == 1) ? "0" + day[1] : day[1]);
         let hour = chengeTimeFormet(date.getHours()) + "" + chengeTimeFormet(date.getMinutes()) + "" + chengeTimeFormet(date.getSeconds());
         return `${day}T${hour}`;
