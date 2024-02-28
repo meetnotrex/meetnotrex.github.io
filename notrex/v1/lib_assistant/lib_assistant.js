@@ -1079,9 +1079,9 @@ if(obj.list){
 
 
     function createGoogleCalendarCustomeTime(time) {
-        let date = new Date(time);date =(date.getMonth()+1)+"/"+date.getDate()+"/"+date.getFullYear();
+        let date = new Date(time),dateStr =(date.getMonth()+1)+"/"+date.getDate()+"/"+date.getFullYear();
 //        let day = String(date.toLocaleDateString()).split("/"); // ? ['8', '27', '2023'] sample return
-        let day = date.split("/"); // ? ['8', '27', '2023'] sample return
+        let day = dateStr.split("/"); // ? ['8', '27', '2023'] sample return
         day = day[2] + "" + ((day[0].length == 1) ? "0" + day[0] : day[0]) + ((day[1].length == 1) ? "0" + day[1] : day[1]);
         let hour = chengeTimeFormet(date.getHours()) + "" + chengeTimeFormet(date.getMinutes()) + "" + chengeTimeFormet(date.getSeconds());
         return `${day}T${hour}`;
