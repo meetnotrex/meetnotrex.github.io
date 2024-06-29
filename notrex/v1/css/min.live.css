@@ -193,7 +193,7 @@ button:hover {
     border-radius: 5px;
     cursor: pointer;
     box-shadow: 0 2px 5px 0 rgba(0, 0, 0, .2), 0 1px 4px 0 rgba(0, 0, 0, .19);
-    font-size: calc(9px + .3vw)
+    font-size: calc(8px + .3vw)
 }
 
 .button_ctr2 {
@@ -1097,6 +1097,7 @@ background-color: #f4f4f4;
 }
 .slogan span {
     font-size: 11px;
+    color: gray;
 }
 
 #message {
@@ -1190,9 +1191,12 @@ background-color: #f4f4f4;
     font-size: 16px;
     background: #f3f3f3;
 }
-
+.msg_offer:hover{
+    background: #e5e5e5
+}
 .msg_offer:hover span {
-    color: blue
+    color: black;
+    font-weight: 900;
 }
 
 .msg_offer>img {
