@@ -998,171 +998,171 @@ function getIntervalInfo(data) {
     g("#customer_video .name").textContent = data.participantUsername;
 }
 
-
-let questionBoxArr = [], surveyBt = g("#survey_bt");
-
-surveyBt.onclick = () => {
-    g("#survey_div").classList.remove("hide");
-    setQuestionItems();
-}
-function setQuestionItems() {
-    let surveyListDiv = g("#survey_list_div");
-    surveyListDiv.innerHTML = "";
-    let textContext = '';
-    for (let i = 0; i < questionBoxArr.length; i++) {
-        textContext += `<div class="question_list_option" onclick="ntrx.showQuestionBox('${questionBoxArr[i].questionId}')" style="background:${questionBoxArr[i].checked ? 'lightgreen' : 'white'}"><p>${questionBoxArr[i].question}</p></div>`;
-    }
-    surveyListDiv.innerHTML = textContext;
-}
-
-let selectedQuestion;
-ntrx.showQuestionBox=function(questionId) {
-    selectedQuestion = getKeyByValue(questionBoxArr, "questionId", questionId);
-
-    if (selectedQuestion) {
-        selectedQuestion.checked = true;
-        setQuestionItems();
-        switch (Number(selectedQuestion.type)) {
-            case (QUESTION_CONFIG.radioButton.type):
-                createVoteBoxQuestion(selectedQuestion.question, selectedQuestion.option, QUESTION_CONFIG.radioButton.name);
-                break;
-            case (QUESTION_CONFIG.checkBox.type):
-                createVoteBoxQuestion(selectedQuestion.question, selectedQuestion.option, QUESTION_CONFIG.checkBox.name);
-                break;
-            case (QUESTION_CONFIG.textBox.type):
-                createTextBoxQuestion(selectedQuestion.question);
-                break;
-        }
-    }
-}
-
-
-function createTextBoxQuestion(question) {
-
-
-    var j = { title: question };
-    j.body = '<div class="question_box">' +
-        '<textarea maxlength="500" placeholder="متن سوال را وارد کنید" id="answer_text_box" cols="35" rows="3"></textarea>' +
-        '</div>';
-
-    j.control = '<span id="answer_question_bt" class="button_ctr2 bg-css-blue bt">ارسال</span>';
-    var dialog = showDialog(j);
-
-    var answerTextBox = g("#answer_text_box");
-    g("textarea", dialog).focus();
-    g("#answer_question_bt", dialog).onclick = function () {
-        var answerTextBoxValue = answerTextBox.value.trim();
-        var answerValidation = isInputValidate(answerTextBoxValue);
-        if (answerTextBoxValue != "") {
-            if (answerValidation[0]) {
-
-                sendAnswerData(selectedQuestion.questionId, QUESTION_CONFIG.textBox.type, answerTextBoxValue);
-                toast.info("جواب شما در حال پردازش است");
-                closeDialog();
-            } else {
-                toast.error("در متن وارد شده از حروف غیر مجاز استفاده شده است ، حرف غیر مجاز : " + answerValidation[1]);
-            }
-        } else {
-            toast.error("متنی وارد نشده است");
-        }
-    }
-
-}
-
-function createVoteBoxQuestion(question, options, type) {
-    var j = { title: question };
-    j.body = '<div id="sf_vote_box_container">';
-    for (i = 0; i < options.length; i++) {
-        j.body += `<div><input type="${type}" name="vote_question" value="${options[i]["value"]}" id="${options[i]["value"]}" >` +
-            `<label for="${options[i]["value"]}">${options[i]["answer"]}</label></div>`
-    }
-    j.body += '</div>'
-    j.control = '<span id="answer_question_bt" class="button_ctr2 bg-css-blue bt">ارسال</span>';
-    var dialog = showDialog(j);
-
-    g("#answer_question_bt", dialog).onclick = function () {
-
-        if (type == QUESTION_CONFIG.radioButton.name) {
-            let selectedOption = g('input[name="vote_question"]:checked');
-            if (selectedOption) {
-                selectedOption = Number(selectedOption.value);
-                if (selectedOption) {
-                    sendAnswerData(selectedQuestion.questionId, QUESTION_CONFIG.radioButton.type, [selectedOption]);
-                    toast.info("جواب شما در حال پردازش است");
-                    closeDialog();
-                }
-            } else {
-                toast.error("گزینه ای انتخاب نشده است");
-            }
-        } else if (type == QUESTION_CONFIG.checkBox.name) {
-            let checkBox = g('input[name="vote_question"]:checked', 0, 1);
-            let answers = [];
-            for (const iterator of checkBox) {
-                if (iterator.checked) {
-                    answers.push(iterator.value);
-                }
-            }
-            if (answers.length > 0) {
-                sendAnswerData(selectedQuestion.questionId, QUESTION_CONFIG.checkBox.type, answers);
-                toast.info("جواب شما در حال پردازش است");
-                closeDialog();
-            } else {
-                toast.error("گزینه ای انتخاب نشده است");
-            }
-        }
-    }
-}
-function getSupporterQuestionArr(questionObjArr) {
-    if (questionObjArr && questionObjArr.length > 0) {
-        for (let iterator of questionObjArr) {
-            getSupporterQuestion(iterator)
-        }
-    }
-}
-function getSupporterQuestion(questionObj) {
-    //console.log("getSupporterQuestion questionObj:",questionObj);
-    if (questionObj) {
-        questionObj.checked = false;
-        questionBoxArr.push(questionObj);
-        updatesurveyBt();
-    }
-}
-
-function updatesurveyBt() {
-    if (questionBoxArr.length > 0) {
-        surveyBt.classList.remove(hideClass)
-    } else {
-        surveyBt.classList.add(hideClass)
-    }
-    g("#survey_qty").textContent = questionBoxArr.length;
-}
-
-function sendAnswerData(questionId, type, answer,talkSession) {
-    var j = { data: { questionId: questionId, type: type, answer: answer, userStringId: myInfo.viewerUsername } };
-    monsole.log("sendAnswerData", j);
-    participantEncryptAgent(CMD.SEND_SURVEY_ANSWER_TO_SUPPORTER, j);
-    //console.log("sendAnswerData","questionId",questionId , "type",type , "value",value);
-}
-
-function sendAnswerAck(userId, questionId) {
-    console.log("sendAnswerAck questionId",questionId,"userId:",userId,"myInfo:",myInfo);
-    if (userId && userId == myInfo.myUserRoomId && questionId) {
-        questionBoxArr = removeInArray(questionBoxArr, "questionId", questionId)
-        //	questionBoxArr.forEach((a,b)=>{
-        //if(a.questionId==questionId){
-        //		 delete questionBoxArr[b];
-        //	  questionBoxArr.pop();
-        // }
-        //	});
-        toast.success("نظر شما ثبت شد");
-        g("#survey_div").classList.add("hide");
-        updatesurveyBt();
-    }
-}
-
-
-
-//    });
-//} else {
-//    document.querySelector("html").innerHTML = "";
+//
+//let questionBoxArr = [], surveyBt = g("#survey_bt");
+//
+//surveyBt.onclick = () => {
+//    g("#survey_div").classList.remove("hide");
+//    setQuestionItems();
 //}
+//function setQuestionItems() {
+//    let surveyListDiv = g("#survey_list_div");
+//    surveyListDiv.innerHTML = "";
+//    let textContext = '';
+//    for (let i = 0; i < questionBoxArr.length; i++) {
+//        textContext += `<div class="question_list_option" onclick="ntrx.showQuestionBox('${questionBoxArr[i].questionId}')" style="background:${questionBoxArr[i].checked ? 'lightgreen' : 'white'}"><p>${questionBoxArr[i].question}</p></div>`;
+//    }
+//    surveyListDiv.innerHTML = textContext;
+//}
+//
+//let selectedQuestion;
+//ntrx.showQuestionBox=function(questionId) {
+//    selectedQuestion = getKeyByValue(questionBoxArr, "questionId", questionId);
+//
+//    if (selectedQuestion) {
+//        selectedQuestion.checked = true;
+//        setQuestionItems();
+//        switch (Number(selectedQuestion.type)) {
+//            case (QUESTION_CONFIG.radioButton.type):
+//                createVoteBoxQuestion(selectedQuestion.question, selectedQuestion.option, QUESTION_CONFIG.radioButton.name);
+//                break;
+//            case (QUESTION_CONFIG.checkBox.type):
+//                createVoteBoxQuestion(selectedQuestion.question, selectedQuestion.option, QUESTION_CONFIG.checkBox.name);
+//                break;
+//            case (QUESTION_CONFIG.textBox.type):
+//                createTextBoxQuestion(selectedQuestion.question);
+//                break;
+//        }
+//    }
+//}
+//
+//
+//function createTextBoxQuestion(question) {
+//
+//
+//    var j = { title: question };
+//    j.body = '<div class="question_box">' +
+//        '<textarea maxlength="500" placeholder="متن سوال را وارد کنید" id="answer_text_box" cols="35" rows="3"></textarea>' +
+//        '</div>';
+//
+//    j.control = '<span id="answer_question_bt" class="button_ctr2 bg-css-blue bt">ارسال</span>';
+//    var dialog = showDialog(j);
+//
+//    var answerTextBox = g("#answer_text_box");
+//    g("textarea", dialog).focus();
+//    g("#answer_question_bt", dialog).onclick = function () {
+//        var answerTextBoxValue = answerTextBox.value.trim();
+//        var answerValidation = isInputValidate(answerTextBoxValue);
+//        if (answerTextBoxValue != "") {
+//            if (answerValidation[0]) {
+//
+//                sendAnswerData(selectedQuestion.questionId, QUESTION_CONFIG.textBox.type, answerTextBoxValue);
+//                toast.info("جواب شما در حال پردازش است");
+//                closeDialog();
+//            } else {
+//                toast.error("در متن وارد شده از حروف غیر مجاز استفاده شده است ، حرف غیر مجاز : " + answerValidation[1]);
+//            }
+//        } else {
+//            toast.error("متنی وارد نشده است");
+//        }
+//    }
+//
+//}
+//
+//function createVoteBoxQuestion(question, options, type) {
+//    var j = { title: question };
+//    j.body = '<div id="sf_vote_box_container">';
+//    for (i = 0; i < options.length; i++) {
+//        j.body += `<div><input type="${type}" name="vote_question" value="${options[i]["value"]}" id="${options[i]["value"]}" >` +
+//            `<label for="${options[i]["value"]}">${options[i]["answer"]}</label></div>`
+//    }
+//    j.body += '</div>'
+//    j.control = '<span id="answer_question_bt" class="button_ctr2 bg-css-blue bt">ارسال</span>';
+//    var dialog = showDialog(j);
+//
+//    g("#answer_question_bt", dialog).onclick = function () {
+//
+//        if (type == QUESTION_CONFIG.radioButton.name) {
+//            let selectedOption = g('input[name="vote_question"]:checked');
+//            if (selectedOption) {
+//                selectedOption = Number(selectedOption.value);
+//                if (selectedOption) {
+//                    sendAnswerData(selectedQuestion.questionId, QUESTION_CONFIG.radioButton.type, [selectedOption]);
+//                    toast.info("جواب شما در حال پردازش است");
+//                    closeDialog();
+//                }
+//            } else {
+//                toast.error("گزینه ای انتخاب نشده است");
+//            }
+//        } else if (type == QUESTION_CONFIG.checkBox.name) {
+//            let checkBox = g('input[name="vote_question"]:checked', 0, 1);
+//            let answers = [];
+//            for (const iterator of checkBox) {
+//                if (iterator.checked) {
+//                    answers.push(iterator.value);
+//                }
+//            }
+//            if (answers.length > 0) {
+//                sendAnswerData(selectedQuestion.questionId, QUESTION_CONFIG.checkBox.type, answers);
+//                toast.info("جواب شما در حال پردازش است");
+//                closeDialog();
+//            } else {
+//                toast.error("گزینه ای انتخاب نشده است");
+//            }
+//        }
+//    }
+//}
+//function getSupporterQuestionArr(questionObjArr) {
+//    if (questionObjArr && questionObjArr.length > 0) {
+//        for (let iterator of questionObjArr) {
+//            getSupporterQuestion(iterator)
+//        }
+//    }
+//}
+//function getSupporterQuestion(questionObj) {
+//    //console.log("getSupporterQuestion questionObj:",questionObj);
+//    if (questionObj) {
+//        questionObj.checked = false;
+//        questionBoxArr.push(questionObj);
+//        updatesurveyBt();
+//    }
+//}
+//
+//function updatesurveyBt() {
+//    if (questionBoxArr.length > 0) {
+//        surveyBt.classList.remove(hideClass)
+//    } else {
+//        surveyBt.classList.add(hideClass)
+//    }
+//    g("#survey_qty").textContent = questionBoxArr.length;
+//}
+//
+//function sendAnswerData(questionId, type, answer,talkSession) {
+//    var j = { data: { questionId: questionId, type: type, answer: answer, userStringId: myInfo.viewerUsername } };
+//    monsole.log("sendAnswerData", j);
+//    participantEncryptAgent(CMD.SEND_SURVEY_ANSWER_TO_SUPPORTER, j);
+//    //console.log("sendAnswerData","questionId",questionId , "type",type , "value",value);
+//}
+//
+//function sendAnswerAck(userId, questionId) {
+//    console.log("sendAnswerAck questionId",questionId,"userId:",userId,"myInfo:",myInfo);
+//    if (userId && userId == myInfo.myUserRoomId && questionId) {
+//        questionBoxArr = removeInArray(questionBoxArr, "questionId", questionId)
+//        //	questionBoxArr.forEach((a,b)=>{
+//        //if(a.questionId==questionId){
+//        //		 delete questionBoxArr[b];
+//        //	  questionBoxArr.pop();
+//        // }
+//        //	});
+//        toast.success("نظر شما ثبت شد");
+//        g("#survey_div").classList.add("hide");
+//        updatesurveyBt();
+//    }
+//}
+//
+//
+//
+////    });
+////} else {
+////    document.querySelector("html").innerHTML = "";
+////}

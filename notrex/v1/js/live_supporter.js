@@ -902,424 +902,424 @@ function cleanChatBox() {
 }
 
 
-g("#question_bt").onclick = () => {
-    closeDotMenuOpen();
-    var j = { title: ' ایجاد نظرسنجی و سوال:' };
-    j.body = '<div id="question_parent">' +
-        '<div class="question_radio_group">' +
-        '<p>نوع :</p>' +
-        '<input type="radio" id="single_option" name="selector" value="1" checked onclick="ntrx.clearQuestionBox()">' +
-        '<label for="single_option">تک جوابی</label>' +
-        '<input type="radio" id="multiple_option" name="selector" value="2" onclick="ntrx.clearQuestionBox()">' +
-        '<label for="multiple_option">چند جوابی</label>' +
-        '<input type="radio" id="text_option" name="selector" value="3" onclick="ntrx.clearQuestionBox()">' +
-        '<label for="text_option">متنی</label>' +
-        '</div>' +
-        '<div>' +
-        '<div class="question_box">' +
-        '<textarea placeholder="متن سوال را وارد کنید" id="question_text_box" cols="35" rows="3" onkeyup="ntrx.qustionBoxOnKeyUpForNextOption()"></textarea>' +
-        '</div>' +
-        '<div id="answer_box"></div>' +
-        '<div class="accept_question_box">' +
-
-        '</div>' +
-        '</div>' +
-        '</div>';
-
-
-    j.control = '<span id="accept_question_bt" class="button_ctr2 bg-css-blue bt">ارسال</span>';
-    var dialog = showDialog(j);
-    questionSwithOption = true;
-    questionTextBox = g("#question_text_box");
-    g("textarea", dialog).focus();
-    g("#accept_question_bt", dialog).onclick = function () {
-        sendQuestionData();
-        toast.info("سوال دریافت و در حال پردازش است اگر مشکلی نباشد برای بینندگان ارسال می گردد");
-        closeDialog();
-    }
-}
-
-
-
-
-
-
-var questionTextBox, questionBoxArr = [];
-
-
-
-let questionSwithOption = true, questionTypeOption, questionId;
-ntrx.qustionBoxOnKeyUpForNextOption=function() {
-    //console.log("keyup fired questionSwithOption:",questionSwithOption);
-    if (questionTextBox.value.trim() != "" && questionSwithOption) {
-        questionSwithOption = false;
-        questionTypeOption = Number(g('input[name="selector"]:checked').value);
-        switch (questionTypeOption) {
-            case QUESTION_CONFIG.radioButton.type:
-                answerTagCreator();
-                break;
-            case QUESTION_CONFIG['checkBox']["type"]:
-                answerTagCreator();
-                break;
-            case QUESTION_CONFIG['textBox']["type"]:
-                removeAllSubTag();
-                break;
-        }
-    } else if (questionTextBox.value == "" && !questionSwithOption) {
-        questionSwithOption = true;
-        removeAllSubTag();
-    }
-}
-
-
-function answerTagCreator(inputValue = "") {
-    const answerBox = g("#answer_box");
-    let inputField = createRadioButton();
-    answerBox.appendChild(inputField);
-
-    let input = inputField.querySelector(".question_option_input");
-    input.checked = true;
-    input.value = inputValue
-
-    input.addEventListener("keyup", (e) => {
-        if (e.target.checked && e.target.value.trim() != "") {
-            answerTagCreator("");
-            e.target.checked = false;
-        } else if (!e.target.checked && e.target.value.trim() == "") {
-            answerBox.removeChild(inputField);
-        }
-    })
-}
-
-
-function createRadioButton() {
-    let div = document.createElement("div");
-    div.classList.add("question_option");
-
-    let img = document.createElement("img");
-    img.src = "./i/close.svg";
-    img.setAttribute("onclick", "removeInput(this)");
-
-    let input = document.createElement("input");
-    input.type = "text";
-    input.name = "fill";
-    input.classList.add("question_option_input")
-    input.placeholder = "گزینه جدید";
-    div.appendChild(input);
-    div.appendChild(img)
-
-    return div;
-}
-
-function removeInput(e) {
-    let input = e.parentNode.querySelector("input").value.trim();
-    if (input !== "") {
-        const answerBox = g("#answer_box");
-        answerBox.removeChild(e.parentNode);
-    }
-}
-
-ntrx.clearQuestionBox=function () {
-    questionTextBox.value = "";
-    removeAllSubTag()
-}
-
-function removeAllSubTag() {
-    let baseTag = g('#answer_box > div', 0, 1);
-    baseTag.forEach(elem => { elem.remove() });
-    questionSwithOption = true;
-}
-
-
-function sendQuestionData() {
-    let qId = getRandom(5);
-
-    let questionObject = {
-        questionId: qId,
-        type: questionTypeOption,
-        question: "",
-        option: []
-    }
-
-    let questionTitle = questionTextBox.value.trim();
-
-    if (questionTitle.length != 0 && isInputValidate(questionTitle)[0]) {
-
-        questionObject.question = questionTitle;
-
-        switch (questionTypeOption) {
-            case QUESTION_CONFIG.radioButton.type:
-            case QUESTION_CONFIG["checkBox"]["type"]:
-
-                let allanswerOptions = g('input[name="fill"]', 0, 1);
-                let validateAnswerArry = [];
-
-                allanswerOptions.forEach(item => {
-                    let i = item.value.trim();
-                    if (i.length != 0) {
-                        if (isInputValidate(i)[0]) {
-                            validateAnswerArry.push(i);
-                        }
-                    }
-                })
-
-                const arrayUniqueByKey = [...new Map(validateAnswerArry.map(item =>
-                    [item, item])).values()];
-
-                if (arrayUniqueByKey.length > 0) {
-                    let value = 1;
-                    for (const iterator of arrayUniqueByKey) {
-                        let o = {
-                            value: value++,
-                            answer: iterator
-                        }
-                        questionObject.option.push(o);
-                    }
-
-                    ntrx.clearQuestionBox();
-                    removeAllSubTag();
-
-                    postQuestionToUsers(questionObject);
-                    questionObject.answer = [];
-                    questionBoxArr.push(questionObject);
-                } else {
-                    toast.error("سوال بدون گزینه های انتخابی قابل ارسال نیست");
-                }
-                break;
-
-            case QUESTION_CONFIG["textBox"]["type"]:
-                postQuestionToUsers(questionObject);
-                questionObject.answer = [];
-                questionBoxArr.push(questionObject);
-                ntrx.clearQuestionBox();
-                break;
-        }
-    } else {
-        toast.error("از حروف غیر مجاز استفاده نکنید");
-    }
-}
-
-function getpreviusQuestion() {
-    let previousQuextionArr = [];
-    if (questionBoxArr.length && questionBoxArr.length > 0) {
-        for (const iterator of questionBoxArr) {
-            previousQuextionArr.push({
-                questionId: iterator.questionId,
-                type: iterator.type,
-                question: iterator.question,
-                option: iterator.option
-            })
-        }
-
-    }
-    return previousQuextionArr;
-}
-
-function postQuestionToUsers(questionObject) {
-    var j = { data: questionObject };
-    supporterEncryptAgent(CMD.SEND_NEW_SURVEY_TO_VIEWERS, j);
-    //console.log("postQuestionToUsers",questionObject);
-}
-
-
-g("#answer_bt").onclick = () => {
-    g("#survey_div").classList.remove(hideClass);
-    closeDotMenuOpen();
-    showQuestionBox();
-}
-
-function showQuestionBox() {
-    let surveyListDiv = g("#survey_list_div");
-    surveyListDiv.innerHTML = "";
-    let questionItems = "";
-    for (let i = 0; i < questionBoxArr.length; i++) {
-        questionItems += `<div class="question_item">`
-            + `<p onclick="ntrx.showQuestion('${questionBoxArr[i].questionId}')">`
-            + questionBoxArr[i].question
-            + `</p>`
-            + `</div>`;
-    }
-    surveyListDiv.innerHTML = questionItems;
-}
-let selectedQuestionId;
-ntrx.showQuestion=function(questionId) {
-    showQuestionBox();
-    let selectedQuestion = getKeyByValue(questionBoxArr, "questionId", questionId);
-    switch (selectedQuestion.type) {
-        case QUESTION_CONFIG.radioButton.type:
-        case QUESTION_CONFIG.checkBox.type:
-            showVoteResultQuestion(selectedQuestion,
-                selectedQuestion.answer, "pie");
-            break;
-        case QUESTION_CONFIG.textBox.type:
-            showTextResultQuestion(selectedQuestion, selectedQuestion.answer);
-            break;
-    }
-    selectedQuestionId = questionId;
-}
-
-function showTextResultQuestion(selectedQuestion, dataObject) {
-    var j = { title: selectedQuestion.question };
-    j.body = "";
-    for (let i = 0; i < dataObject.length; i++) {
-        j.body += `<div class="text_question_result">`
-            + `<div class="waiting_username_div"><span> نام کاربر : </span><span class="waiting_username">&nbsp;${dataObject[i].userStringId}&nbsp;</span></div><p>پاسخ : ${dataObject[i].value}</p>`
-            + `</div>`
-    }
-
-    //j.control = '<span id="accept_question_bt" class="button_ctr2 bg-css-blue bt">ارسال</span>';
-    var dialog = showDialog(j);
-    g("#close_bt", dialog).textContent = "اوکی دیدم";
-}
-
-
-function showVoteResultQuestion(questionObject, dataObject, chartType) {
-
-    var j = { title: questionObject.question };
-    j.body = '<canvas id="vote_question_result"></canvas>';
-    j.control = '<span id="change_chart_type_bt" data-charttype="pie" class="button_ctr2 bg-css-blue bt">نمایش میله ای</span>';
-    var dialog = showDialog(j);
-    g("#close_bt", dialog).textContent = "اوکی دیدم";
-    var canvas = g("#vote_question_result");
-
-    function redrawChartCanvas(chartType) {
-        let context = canvas.getContext('2d');
-        context.clearRect(0, 0, canvas.width, canvas.height);
-        context.beginPath();
-        let resultObject;
-        switch (chartType) {
-            case 'pie':
-                resultObject = createPieChart(questionObject.option, dataObject);
-                break;
-            case 'bar':
-                resultObject = createBarChart(questionObject.option, dataObject);
-                break;
-        }
-        new Schart("vote_question_result", resultObject);
-    }
-
-
-    var changeChartTypeBt = g("#change_chart_type_bt", dialog);
-
-    changeChartTypeBt.onclick = function () {
-        let chartType = changeChartTypeBt.dataset.charttype;
-        if (chartType == "pie") {
-            changeChartTypeBt.dataset.charttype = "bar";
-            changeChartTypeBt.textContent = "نمایش دایره ای";
-        } else {
-            changeChartTypeBt.dataset.charttype = "pie";
-            changeChartTypeBt.textContent = "نمایش میله ای";
-        }
-        redrawChartCanvas(changeChartTypeBt.dataset.charttype);
-
-    }
-    redrawChartCanvas("pie");
-
-}
-function createBarChart(options, data) {
-    let answerObject = {};
-    let option = {
-        type: 'bar',
-        title: {
-            text: "",
-        },
-        labels: ["نتایج"],
-        bgColor: '#fbfbfb',
-        datasets: []
-    }
-
-    for (let i = 0; i < options.length; i++) {
-        answerObject[options[i]["value"]] = [];
-    }
-
-    data.filter(elem => {
-        Object.keys(answerObject).forEach(key => {
-            for (const iterator of elem["value"]) {
-                if (iterator == key) {
-                    answerObject[key].push(iterator);
-                }
-            }
-        })
-    });
-    for (let i = 0; i < options.length; i++) {
-        let o = {
-            label: options[i]["answer"],
-            data: [answerObject[options[i]["value"]].length]
-        }
-        option["datasets"].push(o);
-    }
-    return option;
-}
-
-
-function createPieChart(questionAnswer, data) {
-    let answerObject = {};
-    let options = {
-        type: 'pie',
-        title: {
-            text: "",
-            font: "bold 18px Vazir"
-        },
-        legend: {
-            position: 'bottom'
-        },
-        bgColor: '#fff',
-        labels: [],
-        datasets: [
-            { data: [] }
-        ]
-    };
-
-    for (let i = 0; i < questionAnswer.length; i++) {
-
-        options["labels"].push(questionAnswer[i]["answer"]);
-        answerObject[questionAnswer[i]["answer"]] = [];
-
-        data.filter(elem => {
-            for (const iterator of elem["value"]) {
-                if (iterator == questionAnswer[i]["value"]) {
-                    answerObject[questionAnswer[i]["answer"]].push(elem["value"]);
-                }
-            }
-
-        })
-    }
-    Object.keys(answerObject).forEach(key => {
-        options["datasets"][0]["data"].push(answerObject[key].length)
-    });
-    return options;
-}
-
-function showResultChart(chartType) {
-    let selectedQuestion = getKeyByValue(questionBoxArr, "questionId", selectedQuestionId);
-    showVoteResultQuestion(selectedQuestion, selectedQuestion.answer, chartType);
-}
-
-function updateQuestionAnswer(answerObject, userId) {
-    //console.log("updateQuestionAnswer answerObject:",answerObject);
-    if (answerObject) {
-        let selectedQuestion = getKeyByValue(questionBoxArr, 'questionId', answerObject.questionId);
-
-        let selectedQuestionAnswer = getKeyByValue(selectedQuestion.answer, 'userStringId', answerObject.userStringId);
-
-        if (selectedQuestionAnswer == undefined) {
-
-            let isUserStringIdValid = isInputValidate(answerObject.userStringId);
-            let isAnswerValid = isInputValidate(answerObject.answer + "");
-            if (selectedQuestion && isUserStringIdValid[0] && isAnswerValid[0]) {
-                let o = {
-                    userStringId: answerObject.userStringId,
-                    value: answerObject.answer
-                }
-                selectedQuestion.answer.push(o);
-
-            }
-        }
-        var j = { receiverId: userId, data: {questionId:answerObject.questionId }};
-        // console.log("updateQuestionAnswer j:",j);
-        supporterEncryptAgent(CMD.SEND_SURVEY_ANSWER_TO_SUPPORTER_ACK, j);
-    }
-}
+//g("#question_bt").onclick = () => {
+//    closeDotMenuOpen();
+//    var j = { title: ' ایجاد نظرسنجی و سوال:' };
+//    j.body = '<div id="question_parent">' +
+//        '<div class="question_radio_group">' +
+//        '<p>نوع :</p>' +
+//        '<input type="radio" id="single_option" name="selector" value="1" checked onclick="ntrx.clearQuestionBox()">' +
+//        '<label for="single_option">تک جوابی</label>' +
+//        '<input type="radio" id="multiple_option" name="selector" value="2" onclick="ntrx.clearQuestionBox()">' +
+//        '<label for="multiple_option">چند جوابی</label>' +
+//        '<input type="radio" id="text_option" name="selector" value="3" onclick="ntrx.clearQuestionBox()">' +
+//        '<label for="text_option">متنی</label>' +
+//        '</div>' +
+//        '<div>' +
+//        '<div class="question_box">' +
+//        '<textarea placeholder="متن سوال را وارد کنید" id="question_text_box" cols="35" rows="3" onkeyup="ntrx.qustionBoxOnKeyUpForNextOption()"></textarea>' +
+//        '</div>' +
+//        '<div id="answer_box"></div>' +
+//        '<div class="accept_question_box">' +
+//
+//        '</div>' +
+//        '</div>' +
+//        '</div>';
+//
+//
+//    j.control = '<span id="accept_question_bt" class="button_ctr2 bg-css-blue bt">ارسال</span>';
+//    var dialog = showDialog(j);
+//    questionSwithOption = true;
+//    questionTextBox = g("#question_text_box");
+//    g("textarea", dialog).focus();
+//    g("#accept_question_bt", dialog).onclick = function () {
+//        sendQuestionData();
+//        toast.info("سوال دریافت و در حال پردازش است اگر مشکلی نباشد برای بینندگان ارسال می گردد");
+//        closeDialog();
+//    }
+//}
+//
+//
+//
+//
+//
+//
+//var questionTextBox, questionBoxArr = [];
+//
+//
+//
+//let questionSwithOption = true, questionTypeOption, questionId;
+//ntrx.qustionBoxOnKeyUpForNextOption=function() {
+//    //console.log("keyup fired questionSwithOption:",questionSwithOption);
+//    if (questionTextBox.value.trim() != "" && questionSwithOption) {
+//        questionSwithOption = false;
+//        questionTypeOption = Number(g('input[name="selector"]:checked').value);
+//        switch (questionTypeOption) {
+//            case QUESTION_CONFIG.radioButton.type:
+//                answerTagCreator();
+//                break;
+//            case QUESTION_CONFIG['checkBox']["type"]:
+//                answerTagCreator();
+//                break;
+//            case QUESTION_CONFIG['textBox']["type"]:
+//                removeAllSubTag();
+//                break;
+//        }
+//    } else if (questionTextBox.value == "" && !questionSwithOption) {
+//        questionSwithOption = true;
+//        removeAllSubTag();
+//    }
+//}
+//
+//
+//function answerTagCreator(inputValue = "") {
+//    const answerBox = g("#answer_box");
+//    let inputField = createRadioButton();
+//    answerBox.appendChild(inputField);
+//
+//    let input = inputField.querySelector(".question_option_input");
+//    input.checked = true;
+//    input.value = inputValue
+//
+//    input.addEventListener("keyup", (e) => {
+//        if (e.target.checked && e.target.value.trim() != "") {
+//            answerTagCreator("");
+//            e.target.checked = false;
+//        } else if (!e.target.checked && e.target.value.trim() == "") {
+//            answerBox.removeChild(inputField);
+//        }
+//    })
+//}
+//
+//
+//function createRadioButton() {
+//    let div = document.createElement("div");
+//    div.classList.add("question_option");
+//
+//    let img = document.createElement("img");
+//    img.src = "./i/close.svg";
+//    img.setAttribute("onclick", "removeInput(this)");
+//
+//    let input = document.createElement("input");
+//    input.type = "text";
+//    input.name = "fill";
+//    input.classList.add("question_option_input")
+//    input.placeholder = "گزینه جدید";
+//    div.appendChild(input);
+//    div.appendChild(img)
+//
+//    return div;
+//}
+//
+//function removeInput(e) {
+//    let input = e.parentNode.querySelector("input").value.trim();
+//    if (input !== "") {
+//        const answerBox = g("#answer_box");
+//        answerBox.removeChild(e.parentNode);
+//    }
+//}
+//
+//ntrx.clearQuestionBox=function () {
+//    questionTextBox.value = "";
+//    removeAllSubTag()
+//}
+//
+//function removeAllSubTag() {
+//    let baseTag = g('#answer_box > div', 0, 1);
+//    baseTag.forEach(elem => { elem.remove() });
+//    questionSwithOption = true;
+//}
+//
+//
+//function sendQuestionData() {
+//    let qId = getRandom(5);
+//
+//    let questionObject = {
+//        questionId: qId,
+//        type: questionTypeOption,
+//        question: "",
+//        option: []
+//    }
+//
+//    let questionTitle = questionTextBox.value.trim();
+//
+//    if (questionTitle.length != 0 && isInputValidate(questionTitle)[0]) {
+//
+//        questionObject.question = questionTitle;
+//
+//        switch (questionTypeOption) {
+//            case QUESTION_CONFIG.radioButton.type:
+//            case QUESTION_CONFIG["checkBox"]["type"]:
+//
+//                let allanswerOptions = g('input[name="fill"]', 0, 1);
+//                let validateAnswerArry = [];
+//
+//                allanswerOptions.forEach(item => {
+//                    let i = item.value.trim();
+//                    if (i.length != 0) {
+//                        if (isInputValidate(i)[0]) {
+//                            validateAnswerArry.push(i);
+//                        }
+//                    }
+//                })
+//
+//                const arrayUniqueByKey = [...new Map(validateAnswerArry.map(item =>
+//                    [item, item])).values()];
+//
+//                if (arrayUniqueByKey.length > 0) {
+//                    let value = 1;
+//                    for (const iterator of arrayUniqueByKey) {
+//                        let o = {
+//                            value: value++,
+//                            answer: iterator
+//                        }
+//                        questionObject.option.push(o);
+//                    }
+//
+//                    ntrx.clearQuestionBox();
+//                    removeAllSubTag();
+//
+//                    postQuestionToUsers(questionObject);
+//                    questionObject.answer = [];
+//                    questionBoxArr.push(questionObject);
+//                } else {
+//                    toast.error("سوال بدون گزینه های انتخابی قابل ارسال نیست");
+//                }
+//                break;
+//
+//            case QUESTION_CONFIG["textBox"]["type"]:
+//                postQuestionToUsers(questionObject);
+//                questionObject.answer = [];
+//                questionBoxArr.push(questionObject);
+//                ntrx.clearQuestionBox();
+//                break;
+//        }
+//    } else {
+//        toast.error("از حروف غیر مجاز استفاده نکنید");
+//    }
+//}
+//
+//function getpreviusQuestion() {
+//    let previousQuextionArr = [];
+//    if (questionBoxArr.length && questionBoxArr.length > 0) {
+//        for (const iterator of questionBoxArr) {
+//            previousQuextionArr.push({
+//                questionId: iterator.questionId,
+//                type: iterator.type,
+//                question: iterator.question,
+//                option: iterator.option
+//            })
+//        }
+//
+//    }
+//    return previousQuextionArr;
+//}
+//
+//function postQuestionToUsers(questionObject) {
+//    var j = { data: questionObject };
+//    supporterEncryptAgent(CMD.SEND_NEW_SURVEY_TO_VIEWERS, j);
+//    //console.log("postQuestionToUsers",questionObject);
+//}
+//
+//
+//g("#answer_bt").onclick = () => {
+//    g("#survey_div").classList.remove(hideClass);
+//    closeDotMenuOpen();
+//    showQuestionBox();
+//}
+//
+//function showQuestionBox() {
+//    let surveyListDiv = g("#survey_list_div");
+//    surveyListDiv.innerHTML = "";
+//    let questionItems = "";
+//    for (let i = 0; i < questionBoxArr.length; i++) {
+//        questionItems += `<div class="question_item">`
+//            + `<p onclick="ntrx.showQuestion('${questionBoxArr[i].questionId}')">`
+//            + questionBoxArr[i].question
+//            + `</p>`
+//            + `</div>`;
+//    }
+//    surveyListDiv.innerHTML = questionItems;
+//}
+//let selectedQuestionId;
+//ntrx.showQuestion=function(questionId) {
+//    showQuestionBox();
+//    let selectedQuestion = getKeyByValue(questionBoxArr, "questionId", questionId);
+//    switch (selectedQuestion.type) {
+//        case QUESTION_CONFIG.radioButton.type:
+//        case QUESTION_CONFIG.checkBox.type:
+//            showVoteResultQuestion(selectedQuestion,
+//                selectedQuestion.answer, "pie");
+//            break;
+//        case QUESTION_CONFIG.textBox.type:
+//            showTextResultQuestion(selectedQuestion, selectedQuestion.answer);
+//            break;
+//    }
+//    selectedQuestionId = questionId;
+//}
+//
+//function showTextResultQuestion(selectedQuestion, dataObject) {
+//    var j = { title: selectedQuestion.question };
+//    j.body = "";
+//    for (let i = 0; i < dataObject.length; i++) {
+//        j.body += `<div class="text_question_result">`
+//            + `<div class="waiting_username_div"><span> نام کاربر : </span><span class="waiting_username">&nbsp;${dataObject[i].userStringId}&nbsp;</span></div><p>پاسخ : ${dataObject[i].value}</p>`
+//            + `</div>`
+//    }
+//
+//    //j.control = '<span id="accept_question_bt" class="button_ctr2 bg-css-blue bt">ارسال</span>';
+//    var dialog = showDialog(j);
+//    g("#close_bt", dialog).textContent = "اوکی دیدم";
+//}
+//
+//
+//function showVoteResultQuestion(questionObject, dataObject, chartType) {
+//
+//    var j = { title: questionObject.question };
+//    j.body = '<canvas id="vote_question_result"></canvas>';
+//    j.control = '<span id="change_chart_type_bt" data-charttype="pie" class="button_ctr2 bg-css-blue bt">نمایش میله ای</span>';
+//    var dialog = showDialog(j);
+//    g("#close_bt", dialog).textContent = "اوکی دیدم";
+//    var canvas = g("#vote_question_result");
+//
+//    function redrawChartCanvas(chartType) {
+//        let context = canvas.getContext('2d');
+//        context.clearRect(0, 0, canvas.width, canvas.height);
+//        context.beginPath();
+//        let resultObject;
+//        switch (chartType) {
+//            case 'pie':
+//                resultObject = createPieChart(questionObject.option, dataObject);
+//                break;
+//            case 'bar':
+//                resultObject = createBarChart(questionObject.option, dataObject);
+//                break;
+//        }
+//        new Schart("vote_question_result", resultObject);
+//    }
+//
+//
+//    var changeChartTypeBt = g("#change_chart_type_bt", dialog);
+//
+//    changeChartTypeBt.onclick = function () {
+//        let chartType = changeChartTypeBt.dataset.charttype;
+//        if (chartType == "pie") {
+//            changeChartTypeBt.dataset.charttype = "bar";
+//            changeChartTypeBt.textContent = "نمایش دایره ای";
+//        } else {
+//            changeChartTypeBt.dataset.charttype = "pie";
+//            changeChartTypeBt.textContent = "نمایش میله ای";
+//        }
+//        redrawChartCanvas(changeChartTypeBt.dataset.charttype);
+//
+//    }
+//    redrawChartCanvas("pie");
+//
+//}
+//function createBarChart(options, data) {
+//    let answerObject = {};
+//    let option = {
+//        type: 'bar',
+//        title: {
+//            text: "",
+//        },
+//        labels: ["نتایج"],
+//        bgColor: '#fbfbfb',
+//        datasets: []
+//    }
+//
+//    for (let i = 0; i < options.length; i++) {
+//        answerObject[options[i]["value"]] = [];
+//    }
+//
+//    data.filter(elem => {
+//        Object.keys(answerObject).forEach(key => {
+//            for (const iterator of elem["value"]) {
+//                if (iterator == key) {
+//                    answerObject[key].push(iterator);
+//                }
+//            }
+//        })
+//    });
+//    for (let i = 0; i < options.length; i++) {
+//        let o = {
+//            label: options[i]["answer"],
+//            data: [answerObject[options[i]["value"]].length]
+//        }
+//        option["datasets"].push(o);
+//    }
+//    return option;
+//}
+//
+//
+//function createPieChart(questionAnswer, data) {
+//    let answerObject = {};
+//    let options = {
+//        type: 'pie',
+//        title: {
+//            text: "",
+//            font: "bold 18px Vazir"
+//        },
+//        legend: {
+//            position: 'bottom'
+//        },
+//        bgColor: '#fff',
+//        labels: [],
+//        datasets: [
+//            { data: [] }
+//        ]
+//    };
+//
+//    for (let i = 0; i < questionAnswer.length; i++) {
+//
+//        options["labels"].push(questionAnswer[i]["answer"]);
+//        answerObject[questionAnswer[i]["answer"]] = [];
+//
+//        data.filter(elem => {
+//            for (const iterator of elem["value"]) {
+//                if (iterator == questionAnswer[i]["value"]) {
+//                    answerObject[questionAnswer[i]["answer"]].push(elem["value"]);
+//                }
+//            }
+//
+//        })
+//    }
+//    Object.keys(answerObject).forEach(key => {
+//        options["datasets"][0]["data"].push(answerObject[key].length)
+//    });
+//    return options;
+//}
+//
+//function showResultChart(chartType) {
+//    let selectedQuestion = getKeyByValue(questionBoxArr, "questionId", selectedQuestionId);
+//    showVoteResultQuestion(selectedQuestion, selectedQuestion.answer, chartType);
+//}
+//
+//function updateQuestionAnswer(answerObject, userId) {
+//    //console.log("updateQuestionAnswer answerObject:",answerObject);
+//    if (answerObject) {
+//        let selectedQuestion = getKeyByValue(questionBoxArr, 'questionId', answerObject.questionId);
+//
+//        let selectedQuestionAnswer = getKeyByValue(selectedQuestion.answer, 'userStringId', answerObject.userStringId);
+//
+//        if (selectedQuestionAnswer == undefined) {
+//
+//            let isUserStringIdValid = isInputValidate(answerObject.userStringId);
+//            let isAnswerValid = isInputValidate(answerObject.answer + "");
+//            if (selectedQuestion && isUserStringIdValid[0] && isAnswerValid[0]) {
+//                let o = {
+//                    userStringId: answerObject.userStringId,
+//                    value: answerObject.answer
+//                }
+//                selectedQuestion.answer.push(o);
+//
+//            }
+//        }
+//        var j = { receiverId: userId, data: {questionId:answerObject.questionId }};
+//        // console.log("updateQuestionAnswer j:",j);
+//        supporterEncryptAgent(CMD.SEND_SURVEY_ANSWER_TO_SUPPORTER_ACK, j);
+//    }
+//}
 
 g("#open_chat_bt").onclick = () => {
     publicChatMode = !publicChatMode;
@@ -1330,441 +1330,442 @@ g("#open_chat_bt").onclick = () => {
     supporterEncryptAgent(CMD.ACTIVE_AND_DEACTIVE_CHAT, j);
 }
 
-g(".media_question_div_close").onclick = () => {
-    g("#media_question_div").classList.add("hide");
-}
+//g(".media_question_div_close").onclick = () => {
+//    g("#media_question_div").classList.add("hide");
+//}
+//
+//
+//// ! live hosting code 
+//
+//
+//const MEDIA_QUESTION_STATE_TYPE = Object.freeze({
+//    UN_READ_QUESTION: "unread",
+//    READ_QUESTION: "read",
+//    SPAM_QUESTION: "spam",
+//    DELETE_QUESTION: "delete"
+//}),
+//    mediaQuestionArr = [],
+//    spamUsersArr = [];
+//
+//let hostServerAddress = "https://host.notrex.ir:8443",
+//    hostStorageFile = { updated: false, media: "" },
+//    mediaHistory = {
+//        latestMediaName: "",
+//        latestMediaData: null,
+//        history: {}
+//    }, questionMediaID = 0;
+//
+//g("#open_host_bt").onclick = () => {
+//    questionMode = false;
+//    closeDotMenuOpen();
+//    var j = { title: 'لیست فایل های ذخیره شده' };
+//    j.body = '<div id="host_container_box">'
+//        + '<div id="host_container_bt">'
+//        + '<label for="upload_single_file" class="insert_bt_file">اضافه کردن تک فایل<input type="file" id="upload_single_file"></label>'
+//        + '<label for="upload_slide_file" class="insert_bt_file">اضافه کردن اسلاید<input type="file" id="upload_slide_file" webkitdirectory mozdirectory accept="image/*"></label>'
+//        + '</div>'
+//        + '<div id="file_size_gradinat"><span id="file_size_gradiant_text"></span></div>'
+//        + '<div id="host_container_items"></div></div>';
+//    var dialog = showDialog(j);
+//    g("#close_bt", dialog).textContent = "بستن";
+//    questionSwithOption = true;
+//
+//    requestToHostServer();
+//    g("#upload_single_file").addEventListener("change", (e) => {
+//        const formData = new FormData();
+//        let hostPathUrl = `${hostServerAddress}/singleupload?supporterid=${myInfo.supporterId}&serversession=${myInfo.serverSession}&talksession=${myInfo.talkSession}&siteid=${myInfo.siteId}`;
+//        // console.log(hostPathUrl);
+//        formData.append("filetoupload", e.target.files[0]);
+//        requestSender(hostPathUrl, formData, "POST", (res => {
+//            if (res && res.statusCode) {
+//                showHostServerMessage(res.statusCode);
+//                if (res.statusCode === MEDIA_HOST_STATUS_CODE.SUCCESS_UPLOAD.code) {
+//                    hostStorageFile.updated = false;
+//                    requestToHostServer();
+//                }
+//            }
+//        }), true);
+//        g("#upload_single_file").value = null;
+//    })
+//
+//    g("#upload_slide_file").addEventListener("change", (e) => {
+//        const formData = new FormData();
+//        let hostPathUrl = `${hostServerAddress}/multiupload?supporterid=${myInfo.supporterId}&serversession=${myInfo.serverSession}&talksession=${myInfo.talkSession}&siteid=${myInfo.siteId}`;
+//        for (const iterator of e.target.files) {
+//            formData.append("filetoupload", iterator);
+//        }
+//        requestSender(hostPathUrl, formData, "POST", (res => {
+//            if (res && res.statusCode) {
+//                showHostServerMessage(res.statusCode);
+//                if (res.statusCode === MEDIA_HOST_STATUS_CODE.SUCCESS_UPLOAD.code) {
+//                    hostStorageFile.updated = false;
+//                    requestToHostServer();
+//                }
+//            }
+//        }), true);
+//        g("#upload_slide_file").value = null;
+//    })
+//}
+//
+//g("#close_host_media_bt").onclick = () => {
+//	g("#middle_wrapper").classList.remove("host_container_mode_2");
+//    let fileState = { state: MEDIA_STATE.CLOSE_MEDIA },
+//        j = { data: fileState };
+//    supporterEncryptAgent(CMD.CHANGE_HOST_MEDIA_STATE, j);
+//    changeMediaState(fileState);
+//    mediaHistory.latestMediaData = null
+//}
+//
+//function requestToHostServer() {
+//    if (hostStorageFile && hostStorageFile.updated) {
+//        insertFileInMediaDiv(hostStorageFile.media.files, hostStorageFile.media.hostSize, hostStorageFile.media.reminedHostSize);
+//    } else {
+//        let hostPathUrl = `${hostServerAddress}/getall`,
+//            query = `supporterid=${myInfo.supporterId}&serversession=${myInfo.serverSession}&talksession=${myInfo.talkSession}&siteid=${myInfo.siteId}`;
+//
+//        requestSender(hostPathUrl, query, "POST", (res => {
+//            if (res && res.statusCode) {
+//                showHostServerMessage(res.statusCode);
+//                let message = JSON.parse(res.message);
+//                if (res.statusCode === MEDIA_HOST_STATUS_CODE.SUCCESS_RESPONSE_ALL_FILES.code) {
+//                    hostStorageFile.updated = true;
+//                    hostStorageFile.media = message;
+//                    insertFileInMediaDiv(message.files, message.hostSize, message.reminedHostSize);
+//                }
+//            }
+//        }), false);
+//    }
+//}
+//
+//
+//function insertFileInMediaDiv(data = [], maxHostSize, remindHostSize) {
+//    let content = "";
+//    for (const iterator of data) {
+//        content += '<div class="file_item">'
+//            + `<span class="file_item_name">${(iterator.qty == 1) ? iterator.fileList.fileName : iterator.folderName}</span>`
+//            + '<div class="file_item_bt">'
+//            + `<span class="file_item_qty">${iterator.qty}</span>`
+//            + `<button class="file_show_bt" data-file="${iterator.name}" data-mame="${iterator.type}" onclick="ntrx.showHostFile(this)">نمایش</button>`
+//            + `<button class="file_delete_bt" data-file="${iterator.name}" data-mame="${iterator.type}" onclick="ntrx.deleteHostFile(this)">حذف</button>`
+//            + '</div></div>';
+//    }
+//    g("#host_container_items").innerHTML = content;
+//    g("#file_size_gradinat").style = `background : linear-gradient(to right , skyBlue ${parseInt((remindHostSize * 100) / maxHostSize)}% , #fff ${parseInt(100 - ((remindHostSize * 100) / maxHostSize))}%)`;
+//    g("#file_size_gradiant_text").textContent = convertByteSize(remindHostSize);
+//}
+//
+//function convertByteSize(bytes, decimals = 2) {
+//    const k = 1024,
+//        dm = decimals < 0 ? 0 : decimals,
+//        sizes = ['بایت', 'کیلوبایت', 'مگابایت', 'گیگابایت'],
+//        i = Math.floor(Math.log(bytes) / Math.log(k));
+//    return `${parseFloat((bytes / Math.pow(k, i)).toFixed(dm))} ${sizes[i]}`;
+//}
+//
+//
+// ntrx.showHostFile=function(evt) {
+//    let fileName = evt.getAttribute("data-file"),
+//        mimeType = evt.getAttribute("data-mame"),
+//        fileAddressUrl = `${hostServerAddress}/`,
+//        query = `get/${myInfo.supporterId}/${myInfo.siteId}/${fileName}`,
+//        slideArr = (mimeType == MEDIA_MIME_TYPE.SLIDE.name) ? getSlideFileAddress(fileName) : null,
+//        mediaInfo = { mimeType: mimeType, fileName: fileName, fileAddressUrl: fileAddressUrl + query, slideArr: slideArr };
+//    supporterEncryptAgent(CMD.SEND_HOST_MEDIA_TO_CUSTOMERS, { data: mediaInfo });
+//    mediaHistory.latestMediaData = mediaInfo;
+//    showMediaStorage(mediaInfo, true);
+//}
+//
+//
+//function getSlideFileAddress(folderPath) {
+//    if (folderPath) {
+//        let slideFiles = getKeyByValue(hostStorageFile.media.files, "name", folderPath).fileList,
+//            slideArry = [];
+//        for (const iterator of slideFiles) {
+//            let fileAddressUrl = `${hostServerAddress}/get/${myInfo.supporterId}/${myInfo.siteId}/${iterator.path}`;
+//            slideArry.push(fileAddressUrl);
+//        }
+//        return slideArry;
+//    }
+//}
+//
+//ntrx.deleteHostFile=function (evt) {
+//    let attr = evt.getAttribute("data-file"),
+//        hostPathUrl = `${hostServerAddress}/delete`,
+//        query = `supporterid=${myInfo.supporterId}&siteid=${myInfo.siteId}&serversession=${myInfo.serverSession}&talksession=${myInfo.talkSession}&file=${attr}`;
+//    requestSender(hostPathUrl, query, "POST", (res => {
+//        if (res && res.statusCode) {
+//            showHostServerMessage(res.statusCode);
+//            if (res.statusCode == MEDIA_HOST_STATUS_CODE.SUCCESS_DELETE.code) {
+//                hostStorageFile.updated = false;
+//                requestToHostServer();
+//            }
+//        }
+//    }), false);
+//}
+//
+//
+//function requestSender(pathUrl, query = null, method = "GET", callBack, isFileSend) {
+//    const request = new XMLHttpRequest();
+//    request.open(method, pathUrl);
+//    request.setRequestHeader("Access-Control-Allow-Origin", "*");
+//    request.setRequestHeader("Access-Control-Allow-Credentials", true);
+//    request.setRequestHeader("Access-Control-Allow-Methods", 'GET,POST');
+//    request.setRequestHeader("Access-Control-Allow-Headers", 'Content-Type,Authorization');
+//    if (!isFileSend) {
+//        request.setRequestHeader('content-type', 'application/x-www-form-urlencoded');
+//    }
+//    request.send(query);
+//    request.onload = () => {
+//        if (callBack) {
+//            callBack(JSON.parse(request.response));
+//        }
+//    }
+//}
+//
+//const MEDIA_HOST_STATUS_CODE = Object.freeze(
+//    {
+//        SUCCESS_RESPONSE_ALL_FILES: { code: 200, pMessage: "اطلاعات شما با موفقیت دریافت شد", eMessage: "success" },
+//        SUCCESS_RESPONSE_FILE: { code: 201, pMessage: "اطلاعات شما با موفقیت دریافت شد", eMessage: "success" },
+//        SUCCESS: { code: 202, pMessage: "", eMessage: "" },
+//        SUCCESS_UPLOAD: { code: 203, pMessage: "آپلود فایل با موفقیت انجام شد", eMessage: "upload success" },
+//        SUCCESS_DELETE: { code: 204, pMessage: "فایل شما از حافظه حذف شد", eMessage: "delete success" },
+//        NOT_FOUND_DATA: { code: 400, pMessage: "اطلاعات ارسال شده شما ناقص میباشد", eMessage: "not found" },
+//        HANDLER_EXCEPTION: { code: 401, pMessage: "", eMessage: "unknown exception" },
+//        NOT_ENOUGH_SPACE: { code: 402, pMessage: "حجم که برای اپلود انتخاب کردین بیشتر از حجم شما میباشد", eMessage: "not enough free space error" },
+//        INVALID_FORMAT: { code: 403, pMessage: "از فرمت های غیر استاندارد در آپلود فایل استفاده کردین", eMessage: "invalid format" },
+//        NOT_FOUND: { code: 404, pMessage: "", eMessage: "" },
+//        EMPTY_FOLDER: { code: 405, pMessage: "پوشه که برای آپلود انتخاب کردین خالی میباشد", eMessage: "empty folder error" },
+//        SERVER_USER_NOT_FOUND: { code: 500, pMessage: "", eMessage: "server not found user" },
+//        SERVER_PROBLEM: { code: 504, pMessage: "", eMessage: "server down" },
+//    }
+//);
+//
+//
+//function showHostServerMessage(statusCode) {
+//    if (statusCode) {
+//        switch (statusCode) {
+//            case MEDIA_HOST_STATUS_CODE.SUCCESS.code:
+//                toast.success(MEDIA_HOST_STATUS_CODE.SUCCESS.pMessage);
+//                break;
+//            case MEDIA_HOST_STATUS_CODE.SUCCESS_RESPONSE_ALL_FILES.code:
+//                toast.success(MEDIA_HOST_STATUS_CODE.SUCCESS_RESPONSE_ALL_FILES.pMessage);
+//                break;
+//            case MEDIA_HOST_STATUS_CODE.SUCCESS_RESPONSE_FILE.code:
+//                toast.success(MEDIA_HOST_STATUS_CODE.SUCCESS_RESPONSE_FILE.pMessage);
+//                break;
+//            case MEDIA_HOST_STATUS_CODE.SUCCESS_UPLOAD.code:
+//                toast.success(MEDIA_HOST_STATUS_CODE.SUCCESS_UPLOAD.pMessage);
+//                break;
+//            case MEDIA_HOST_STATUS_CODE.SUCCESS_DELETE.code:
+//                toast.success(MEDIA_HOST_STATUS_CODE.SUCCESS_DELETE.pMessage);
+//                break;
+//            case MEDIA_HOST_STATUS_CODE.NOT_FOUND_DATA.code:
+//                toast.error(MEDIA_HOST_STATUS_CODE.NOT_FOUND_DATA.pMessage);
+//                break;
+//            case MEDIA_HOST_STATUS_CODE.HANDLER_EXCEPTION.code:
+//                toast.error(MEDIA_HOST_STATUS_CODE.HANDLER_EXCEPTION.pMessage);
+//                break;
+//            case MEDIA_HOST_STATUS_CODE.NOT_FOUND.code:
+//                toast.error(MEDIA_HOST_STATUS_CODE.NOT_FOUND.pMessage);
+//                break;
+//            case MEDIA_HOST_STATUS_CODE.NOT_ENOUGH_SPACE.code:
+//                toast.error(MEDIA_HOST_STATUS_CODE.NOT_ENOUGH_SPACE.pMessage);
+//                break;
+//            case MEDIA_HOST_STATUS_CODE.INVALID_FORMAT.code:
+//                toast.error(MEDIA_HOST_STATUS_CODE.INVALID_FORMAT.pMessage);
+//                break;
+//            case MEDIA_HOST_STATUS_CODE.EMPTY_FOLDER.code:
+//                toast.error(MEDIA_HOST_STATUS_CODE.EMPTY_FOLDER.pMessage);
+//                break;
+//            case MEDIA_HOST_STATUS_CODE.SERVER_PROBLEM.code:
+//                toast.error(MEDIA_HOST_STATUS_CODE.SERVER_PROBLEM.pMessage);
+//                break;
+//            case MEDIA_HOST_STATUS_CODE.SERVER_PROBLEM.code:
+//                toast.error(MEDIA_HOST_STATUS_CODE.SERVER_PROBLEM.pMessage);
+//                break;
+//        }
+//    }
+//}
+//
+//
+//g("#open_media_question_bt").onclick = () => {
+//    questionMode = true;
+//    g("#media_question_div").classList.remove(hideClass);
+//    closeDotMenuOpen();
+//    showMediaQuestion();
+//}
+//
+//
+//// ! question box code
+//
+//
+//function reciveNewMediaQuestion(uuid, userData) {
+//    console.log("uuid : ", uuid, "user data : ", userData);
+//    if (uuid && userData) {
+//        let newMediaQuestionObj = {
+//            questionId: questionMediaID++,
+//            questionState: MEDIA_QUESTION_STATE_TYPE.UN_READ_QUESTION,
+//            userName: userData.userName,
+//            uuid: uuid,
+//            questionDateTime: getDateTime(),
+//            questionType: userData.questionType.name,
+//            questionPointer: userData.questionPointer,
+//            questionTextContent: userData.questionText,
+//            fileAddress: userData.fileAddress,
+//            fileName: b64DecodeUnicode(userData.fileName)
+//        }
+//        console.log("newMediaQuestionObj : ", newMediaQuestionObj);
+//        if (spamUsersArr.filter(key => { if (key == newMediaQuestionObj.userName) return key }).length > 0) {
+//            newMediaQuestionObj.questionState = MEDIA_QUESTION_STATE_TYPE.SPAM_QUESTION;
+//        }
+//        mediaQuestionArr.push(newMediaQuestionObj);
+//    }
+//    showMediaQuestion();
+//}
+//
+//function getDateTime() {
+//    let date = new Date(),
+//        hour = (String(date.getHours()).length == 1) ? "0" + String(date.getHours()) : date.getHours(),
+//        min = (String(date.getMinutes()).length == 1) ? "0" + String(date.getMinutes()) : date.getMinutes(),
+//        time = `${hour}:${min}`;
+//    return time;
+//}
+//
+//ntrx.deleteQuestion=function (evt) {
+//    var j = { title: 'این پیام پاک شود ؟' };
+//    j.control = '<span id="remove_pm_bt" class="button_ctr2 bg-css-red bt">بله پاک کن</span>';
+//    showDialog(j);
+//    g("#remove_pm_bt").onclick = function () {
+//        let questionID = Number(evt.getAttribute("data-question-id")),
+//            question = getKeyByValue(mediaQuestionArr, "questionId", questionID);
+//        if (question) {
+//            question.questionState = MEDIA_QUESTION_STATE_TYPE.DELETE_QUESTION;
+//        }
+//        closeDialog();
+//        showMediaQuestion();
+//    }
+//}
+//
+//
+//ntrx.reportSpamQuestion=function (evt) {
+//    var j = { title: 'این پیام اسپم است و از دریافت دیگر پیام های کاربر جلوگیری شود' };
+//    j.control = '<span id="spam_pm_bt" class="button_ctr2 bg-css-red bt">پیام های کاربر اسپم است</span>';
+//    showDialog(j);
+//    g("#spam_pm_bt").onclick = function () {
+//        let userName = evt.getAttribute("data-username");
+//        if (spamUsersArr.filter(user => user == userName).length > 0) {
+//            let messages = getKeyByValue(mediaQuestionArr, "userName", userName);
+//            for (const iterator of messages) {
+//                iterator.state = MEDIA_QUESTION_STATE_TYPE.SPAM_QUESTION;
+//            }
+//        } else {
+//            spamUsersArr.push(userName);
+//            let messages = mediaQuestionArr.filter(key => {
+//                if (key.userName == userName) {
+//                    return key
+//                }
+//            });
+//            for (const iterator of messages) {
+//                iterator.questionState = MEDIA_QUESTION_STATE_TYPE.SPAM_QUESTION;
+//            }
+//        }
+//        closeDialog();
+//        showMediaQuestion();
+//    }
+//}
+//
+//
+//
+//function showMediaQuestion() {
+//    let messagesTextContent = "",
+//        mediaMessages = mediaQuestionArr.filter(k => {
+//            if (k.questionState == MEDIA_QUESTION_STATE_TYPE.UN_READ_QUESTION || k.questionState == MEDIA_QUESTION_STATE_TYPE.READ_QUESTION) {
+//                return k;
+//            }
+//        });
+//    for (const iterator of mediaMessages) {
+//
+//        let filePosition = iterator.questionPointer;
+//        if (iterator.questionType == MEDIA_MIME_TYPE.IMAGE.name) {
+//            filePosition = 1;
+//        } else if (iterator.questionType == MEDIA_MIME_TYPE.SLIDE.name) {
+//            filePosition++;
+//        } else if (iterator.questionType == MEDIA_MIME_TYPE.MOVIE.name) {
+//            filePosition = toHoursAndMinutes(filePosition);
+//        }
+//        messagesTextContent += '<div class="media_question_data">'
+//            + '<div class="question_media_info">'
+//            + '<div class="question_info_div">'
+//            + '<span class="question_info_item">'
+//            + '<span class="question_thumb_icon" title="نام کاربر"><img src="./i/user.svg"></span>'
+//            + `<span class="question_info_txt">${iterator.userName}</span>`
+//            + '</span>'
+//            + '<span class="question_info_item">'
+//            + '<span class="question_thumb_icon" title="زمان ارسال"><img src="./i/time.svg"></span>'
+//            + `<span class="question_info_txt">${iterator.questionDateTime}</span>`
+//            + '</span>'
+//            + '</div>'
+//
+//            + '<div class="question_info_div">'
+//            + '<span class="question_info_item">'
+//            + '<span class="question_thumb_icon" title="نام فایل"><img src="./i/file.svg"></span>'
+//            + `<span class="question_info_txt">${iterator.fileName}</span>`
+//            + '</span>'
+//            + '<span class="question_info_item">'
+//            + '<span class="question_thumb_icon" title="موقعیت"><img src="./i/hashtag.svg"></span>'
+//            + `<span class="question_info_txt">${filePosition}</span>`
+//            + '</span></div>'
+//
+//            + '</div><div class="question_media_content"><div class="question_media_text">'
+//            + `<p class="question_text_mode_1" onclick="ntrx.showTextQuestion(this)" data-text-state="1">${iterator.questionTextContent}</p>`
+//            + '</div><div class="question_media_bt">'
+//            + `<span class="thumb_bt bg-css-green" data-question-id="${iterator.questionId}" data-username="${iterator.userName}" onclick="ntrx.showMediaAnswerQuestion(this)" title="نمایش"><img src="./i/eye2.svg"></span>`
+//            + `<span class="thumb_bt bg-css-orange" data-question-id="${iterator.questionId}" data-username="${iterator.userName}" onclick="ntrx.reportSpamQuestion(this)" title="اسپم"><img src="./i/spider.svg"></span>`
+//            + `<span class="thumb_bt bg-css-red" data-question-id="${iterator.questionId}" data-username="${iterator.userName}" onclick="ntrx.deleteQuestion(this)" title="حذف"><img src="./i/delete.svg"></span>`
+//            + '</div></div></div>';
+//    }
+//    g("#media_question_list_div").innerHTML = messagesTextContent;
+//}
+//
+//ntrx.showTextQuestion=function (evt) {
+//    let textState = evt.getAttribute("data-text-state");
+//    switch (textState) {
+//        case "1":
+//            evt.setAttribute("data-text-state", "2");
+//            evt.classList.add("question_text_mode_2");
+//            evt.classList.remove("question_text_mode_1");
+//            break;
+//        case "2":
+//            evt.setAttribute("data-text-state", "1");
+//            evt.classList.add("question_text_mode_1");
+//            evt.classList.remove("question_text_mode_2");
+//            break;
+//    }
+//}
+//
+//ntrx.showMediaAnswerQuestion=function (evt) {
+//    let questionID = evt.getAttribute("data-question-id"),
+//        question = getKeyByValue(mediaQuestionArr, "questionId", questionID);
+//    if (question) {
+//        question.questionState = MEDIA_QUESTION_STATE_TYPE.READ_QUESTION;
+//        switch (question.questionType) {
+//            case MEDIA_MIME_TYPE.IMAGE.name:
+//                showImageMedia(question.fileAddress, question.fileAddress, true, question.questionTextContent);
+//                break;
+//            case MEDIA_MIME_TYPE.SLIDE.name:
+//                showSlideMedia(question.fileAddress, true, question.questionTextContent);
+//                // console.log("question.questionPointer : ", question.questionPointer, "question.fileAddress : ", question.fileAddress);
+//                hosthostSlideSupporterPageIndex = question.questionPointer;
+//                changeSlidePage(question.questionPointer, question.fileAddress);
+//                // console.log("question.questionPointer : " , question.questionPointer);
+//                break;
+//            case MEDIA_MIME_TYPE.MOVIE.name:
+//                showVideoMedia(question.fileAddress, true, question.questionTextContent);
+//                hostVideoElem.currentTime = question.questionPointer;
+//                showVideoTime();
+//                break;
+//        }
+//    }
+//    showMediaQuestion();
+//}
 
-
-// ! live hosting code 
-
-
-const MEDIA_QUESTION_STATE_TYPE = Object.freeze({
-    UN_READ_QUESTION: "unread",
-    READ_QUESTION: "read",
-    SPAM_QUESTION: "spam",
-    DELETE_QUESTION: "delete"
-}),
-    mediaQuestionArr = [],
-    spamUsersArr = [];
-
-let hostServerAddress = "https://host.notrex.ir:8443",
-    hostStorageFile = { updated: false, media: "" },
-    mediaHistory = {
-        latestMediaName: "",
-        latestMediaData: null,
-        history: {}
-    }, questionMediaID = 0;
-
-g("#open_host_bt").onclick = () => {
-    questionMode = false;
-    closeDotMenuOpen();
-    var j = { title: 'لیست فایل های ذخیره شده' };
-    j.body = '<div id="host_container_box">'
-        + '<div id="host_container_bt">'
-        + '<label for="upload_single_file" class="insert_bt_file">اضافه کردن تک فایل<input type="file" id="upload_single_file"></label>'
-        + '<label for="upload_slide_file" class="insert_bt_file">اضافه کردن اسلاید<input type="file" id="upload_slide_file" webkitdirectory mozdirectory accept="image/*"></label>'
-        + '</div>'
-        + '<div id="file_size_gradinat"><span id="file_size_gradiant_text"></span></div>'
-        + '<div id="host_container_items"></div></div>';
-    var dialog = showDialog(j);
-    g("#close_bt", dialog).textContent = "بستن";
-    questionSwithOption = true;
-
-    requestToHostServer();
-    g("#upload_single_file").addEventListener("change", (e) => {
-        const formData = new FormData();
-        let hostPathUrl = `${hostServerAddress}/singleupload?supporterid=${myInfo.supporterId}&serversession=${myInfo.serverSession}&talksession=${myInfo.talkSession}&siteid=${myInfo.siteId}`;
-        // console.log(hostPathUrl);
-        formData.append("filetoupload", e.target.files[0]);
-        requestSender(hostPathUrl, formData, "POST", (res => {
-            if (res && res.statusCode) {
-                showHostServerMessage(res.statusCode);
-                if (res.statusCode === MEDIA_HOST_STATUS_CODE.SUCCESS_UPLOAD.code) {
-                    hostStorageFile.updated = false;
-                    requestToHostServer();
-                }
-            }
-        }), true);
-        g("#upload_single_file").value = null;
-    })
-
-    g("#upload_slide_file").addEventListener("change", (e) => {
-        const formData = new FormData();
-        let hostPathUrl = `${hostServerAddress}/multiupload?supporterid=${myInfo.supporterId}&serversession=${myInfo.serverSession}&talksession=${myInfo.talkSession}&siteid=${myInfo.siteId}`;
-        for (const iterator of e.target.files) {
-            formData.append("filetoupload", iterator);
-        }
-        requestSender(hostPathUrl, formData, "POST", (res => {
-            if (res && res.statusCode) {
-                showHostServerMessage(res.statusCode);
-                if (res.statusCode === MEDIA_HOST_STATUS_CODE.SUCCESS_UPLOAD.code) {
-                    hostStorageFile.updated = false;
-                    requestToHostServer();
-                }
-            }
-        }), true);
-        g("#upload_slide_file").value = null;
-    })
-}
-
-g("#close_host_media_bt").onclick = () => {
-	g("#middle_wrapper").classList.remove("host_container_mode_2");
-    let fileState = { state: MEDIA_STATE.CLOSE_MEDIA },
-        j = { data: fileState };
-    supporterEncryptAgent(CMD.CHANGE_HOST_MEDIA_STATE, j);
-    changeMediaState(fileState);
-    mediaHistory.latestMediaData = null
-}
-
-function requestToHostServer() {
-    if (hostStorageFile && hostStorageFile.updated) {
-        insertFileInMediaDiv(hostStorageFile.media.files, hostStorageFile.media.hostSize, hostStorageFile.media.reminedHostSize);
-    } else {
-        let hostPathUrl = `${hostServerAddress}/getall`,
-            query = `supporterid=${myInfo.supporterId}&serversession=${myInfo.serverSession}&talksession=${myInfo.talkSession}&siteid=${myInfo.siteId}`;
-
-        requestSender(hostPathUrl, query, "POST", (res => {
-            if (res && res.statusCode) {
-                showHostServerMessage(res.statusCode);
-                let message = JSON.parse(res.message);
-                if (res.statusCode === MEDIA_HOST_STATUS_CODE.SUCCESS_RESPONSE_ALL_FILES.code) {
-                    hostStorageFile.updated = true;
-                    hostStorageFile.media = message;
-                    insertFileInMediaDiv(message.files, message.hostSize, message.reminedHostSize);
-                }
-            }
-        }), false);
-    }
-}
-
-
-function insertFileInMediaDiv(data = [], maxHostSize, remindHostSize) {
-    let content = "";
-    for (const iterator of data) {
-        content += '<div class="file_item">'
-            + `<span class="file_item_name">${(iterator.qty == 1) ? iterator.fileList.fileName : iterator.folderName}</span>`
-            + '<div class="file_item_bt">'
-            + `<span class="file_item_qty">${iterator.qty}</span>`
-            + `<button class="file_show_bt" data-file="${iterator.name}" data-mame="${iterator.type}" onclick="ntrx.showHostFile(this)">نمایش</button>`
-            + `<button class="file_delete_bt" data-file="${iterator.name}" data-mame="${iterator.type}" onclick="ntrx.deleteHostFile(this)">حذف</button>`
-            + '</div></div>';
-    }
-    g("#host_container_items").innerHTML = content;
-    g("#file_size_gradinat").style = `background : linear-gradient(to right , skyBlue ${parseInt((remindHostSize * 100) / maxHostSize)}% , #fff ${parseInt(100 - ((remindHostSize * 100) / maxHostSize))}%)`;
-    g("#file_size_gradiant_text").textContent = convertByteSize(remindHostSize);
-}
-
-function convertByteSize(bytes, decimals = 2) {
-    const k = 1024,
-        dm = decimals < 0 ? 0 : decimals,
-        sizes = ['بایت', 'کیلوبایت', 'مگابایت', 'گیگابایت'],
-        i = Math.floor(Math.log(bytes) / Math.log(k));
-    return `${parseFloat((bytes / Math.pow(k, i)).toFixed(dm))} ${sizes[i]}`;
-}
-
-
- ntrx.showHostFile=function(evt) {
-    let fileName = evt.getAttribute("data-file"),
-        mimeType = evt.getAttribute("data-mame"),
-        fileAddressUrl = `${hostServerAddress}/`,
-        query = `get/${myInfo.supporterId}/${myInfo.siteId}/${fileName}`,
-        slideArr = (mimeType == MEDIA_MIME_TYPE.SLIDE.name) ? getSlideFileAddress(fileName) : null,
-        mediaInfo = { mimeType: mimeType, fileName: fileName, fileAddressUrl: fileAddressUrl + query, slideArr: slideArr };
-    supporterEncryptAgent(CMD.SEND_HOST_MEDIA_TO_CUSTOMERS, { data: mediaInfo });
-    mediaHistory.latestMediaData = mediaInfo;
-    showMediaStorage(mediaInfo, true);
-}
-
-
-function getSlideFileAddress(folderPath) {
-    if (folderPath) {
-        let slideFiles = getKeyByValue(hostStorageFile.media.files, "name", folderPath).fileList,
-            slideArry = [];
-        for (const iterator of slideFiles) {
-            let fileAddressUrl = `${hostServerAddress}/get/${myInfo.supporterId}/${myInfo.siteId}/${iterator.path}`;
-            slideArry.push(fileAddressUrl);
-        }
-        return slideArry;
-    }
-}
-
-ntrx.deleteHostFile=function (evt) {
-    let attr = evt.getAttribute("data-file"),
-        hostPathUrl = `${hostServerAddress}/delete`,
-        query = `supporterid=${myInfo.supporterId}&siteid=${myInfo.siteId}&serversession=${myInfo.serverSession}&talksession=${myInfo.talkSession}&file=${attr}`;
-    requestSender(hostPathUrl, query, "POST", (res => {
-        if (res && res.statusCode) {
-            showHostServerMessage(res.statusCode);
-            if (res.statusCode == MEDIA_HOST_STATUS_CODE.SUCCESS_DELETE.code) {
-                hostStorageFile.updated = false;
-                requestToHostServer();
-            }
-        }
-    }), false);
-}
-
-
-function requestSender(pathUrl, query = null, method = "GET", callBack, isFileSend) {
-    const request = new XMLHttpRequest();
-    request.open(method, pathUrl);
-    request.setRequestHeader("Access-Control-Allow-Origin", "*");
-    request.setRequestHeader("Access-Control-Allow-Credentials", true);
-    request.setRequestHeader("Access-Control-Allow-Methods", 'GET,POST');
-    request.setRequestHeader("Access-Control-Allow-Headers", 'Content-Type,Authorization');
-    if (!isFileSend) {
-        request.setRequestHeader('content-type', 'application/x-www-form-urlencoded');
-    }
-    request.send(query);
-    request.onload = () => {
-        if (callBack) {
-            callBack(JSON.parse(request.response));
-        }
-    }
-}
-
-const MEDIA_HOST_STATUS_CODE = Object.freeze(
-    {
-        SUCCESS_RESPONSE_ALL_FILES: { code: 200, pMessage: "اطلاعات شما با موفقیت دریافت شد", eMessage: "success" },
-        SUCCESS_RESPONSE_FILE: { code: 201, pMessage: "اطلاعات شما با موفقیت دریافت شد", eMessage: "success" },
-        SUCCESS: { code: 202, pMessage: "", eMessage: "" },
-        SUCCESS_UPLOAD: { code: 203, pMessage: "آپلود فایل با موفقیت انجام شد", eMessage: "upload success" },
-        SUCCESS_DELETE: { code: 204, pMessage: "فایل شما از حافظه حذف شد", eMessage: "delete success" },
-        NOT_FOUND_DATA: { code: 400, pMessage: "اطلاعات ارسال شده شما ناقص میباشد", eMessage: "not found" },
-        HANDLER_EXCEPTION: { code: 401, pMessage: "", eMessage: "unknown exception" },
-        NOT_ENOUGH_SPACE: { code: 402, pMessage: "حجم که برای اپلود انتخاب کردین بیشتر از حجم شما میباشد", eMessage: "not enough free space error" },
-        INVALID_FORMAT: { code: 403, pMessage: "از فرمت های غیر استاندارد در آپلود فایل استفاده کردین", eMessage: "invalid format" },
-        NOT_FOUND: { code: 404, pMessage: "", eMessage: "" },
-        EMPTY_FOLDER: { code: 405, pMessage: "پوشه که برای آپلود انتخاب کردین خالی میباشد", eMessage: "empty folder error" },
-        SERVER_USER_NOT_FOUND: { code: 500, pMessage: "", eMessage: "server not found user" },
-        SERVER_PROBLEM: { code: 504, pMessage: "", eMessage: "server down" },
-    }
-);
-
-
-function showHostServerMessage(statusCode) {
-    if (statusCode) {
-        switch (statusCode) {
-            case MEDIA_HOST_STATUS_CODE.SUCCESS.code:
-                toast.success(MEDIA_HOST_STATUS_CODE.SUCCESS.pMessage);
-                break;
-            case MEDIA_HOST_STATUS_CODE.SUCCESS_RESPONSE_ALL_FILES.code:
-                toast.success(MEDIA_HOST_STATUS_CODE.SUCCESS_RESPONSE_ALL_FILES.pMessage);
-                break;
-            case MEDIA_HOST_STATUS_CODE.SUCCESS_RESPONSE_FILE.code:
-                toast.success(MEDIA_HOST_STATUS_CODE.SUCCESS_RESPONSE_FILE.pMessage);
-                break;
-            case MEDIA_HOST_STATUS_CODE.SUCCESS_UPLOAD.code:
-                toast.success(MEDIA_HOST_STATUS_CODE.SUCCESS_UPLOAD.pMessage);
-                break;
-            case MEDIA_HOST_STATUS_CODE.SUCCESS_DELETE.code:
-                toast.success(MEDIA_HOST_STATUS_CODE.SUCCESS_DELETE.pMessage);
-                break;
-            case MEDIA_HOST_STATUS_CODE.NOT_FOUND_DATA.code:
-                toast.error(MEDIA_HOST_STATUS_CODE.NOT_FOUND_DATA.pMessage);
-                break;
-            case MEDIA_HOST_STATUS_CODE.HANDLER_EXCEPTION.code:
-                toast.error(MEDIA_HOST_STATUS_CODE.HANDLER_EXCEPTION.pMessage);
-                break;
-            case MEDIA_HOST_STATUS_CODE.NOT_FOUND.code:
-                toast.error(MEDIA_HOST_STATUS_CODE.NOT_FOUND.pMessage);
-                break;
-            case MEDIA_HOST_STATUS_CODE.NOT_ENOUGH_SPACE.code:
-                toast.error(MEDIA_HOST_STATUS_CODE.NOT_ENOUGH_SPACE.pMessage);
-                break;
-            case MEDIA_HOST_STATUS_CODE.INVALID_FORMAT.code:
-                toast.error(MEDIA_HOST_STATUS_CODE.INVALID_FORMAT.pMessage);
-                break;
-            case MEDIA_HOST_STATUS_CODE.EMPTY_FOLDER.code:
-                toast.error(MEDIA_HOST_STATUS_CODE.EMPTY_FOLDER.pMessage);
-                break;
-            case MEDIA_HOST_STATUS_CODE.SERVER_PROBLEM.code:
-                toast.error(MEDIA_HOST_STATUS_CODE.SERVER_PROBLEM.pMessage);
-                break;
-            case MEDIA_HOST_STATUS_CODE.SERVER_PROBLEM.code:
-                toast.error(MEDIA_HOST_STATUS_CODE.SERVER_PROBLEM.pMessage);
-                break;
-        }
-    }
-}
-
-
-g("#open_media_question_bt").onclick = () => {
-    questionMode = true;
-    g("#media_question_div").classList.remove(hideClass);
-    closeDotMenuOpen();
-    showMediaQuestion();
-}
-
-
-// ! question box code
-
-
-function reciveNewMediaQuestion(uuid, userData) {
-    console.log("uuid : ", uuid, "user data : ", userData);
-    if (uuid && userData) {
-        let newMediaQuestionObj = {
-            questionId: questionMediaID++,
-            questionState: MEDIA_QUESTION_STATE_TYPE.UN_READ_QUESTION,
-            userName: userData.userName,
-            uuid: uuid,
-            questionDateTime: getDateTime(),
-            questionType: userData.questionType.name,
-            questionPointer: userData.questionPointer,
-            questionTextContent: userData.questionText,
-            fileAddress: userData.fileAddress,
-            fileName: b64DecodeUnicode(userData.fileName)
-        }
-        console.log("newMediaQuestionObj : ", newMediaQuestionObj);
-        if (spamUsersArr.filter(key => { if (key == newMediaQuestionObj.userName) return key }).length > 0) {
-            newMediaQuestionObj.questionState = MEDIA_QUESTION_STATE_TYPE.SPAM_QUESTION;
-        }
-        mediaQuestionArr.push(newMediaQuestionObj);
-    }
-    showMediaQuestion();
-}
-
-function getDateTime() {
-    let date = new Date(),
-        hour = (String(date.getHours()).length == 1) ? "0" + String(date.getHours()) : date.getHours(),
-        min = (String(date.getMinutes()).length == 1) ? "0" + String(date.getMinutes()) : date.getMinutes(),
-        time = `${hour}:${min}`;
-    return time;
-}
-
-ntrx.deleteQuestion=function (evt) {
-    var j = { title: 'این پیام پاک شود ؟' };
-    j.control = '<span id="remove_pm_bt" class="button_ctr2 bg-css-red bt">بله پاک کن</span>';
-    showDialog(j);
-    g("#remove_pm_bt").onclick = function () {
-        let questionID = Number(evt.getAttribute("data-question-id")),
-            question = getKeyByValue(mediaQuestionArr, "questionId", questionID);
-        if (question) {
-            question.questionState = MEDIA_QUESTION_STATE_TYPE.DELETE_QUESTION;
-        }
-        closeDialog();
-        showMediaQuestion();
-    }
-}
-
-
-ntrx.reportSpamQuestion=function (evt) {
-    var j = { title: 'این پیام اسپم است و از دریافت دیگر پیام های کاربر جلوگیری شود' };
-    j.control = '<span id="spam_pm_bt" class="button_ctr2 bg-css-red bt">پیام های کاربر اسپم است</span>';
-    showDialog(j);
-    g("#spam_pm_bt").onclick = function () {
-        let userName = evt.getAttribute("data-username");
-        if (spamUsersArr.filter(user => user == userName).length > 0) {
-            let messages = getKeyByValue(mediaQuestionArr, "userName", userName);
-            for (const iterator of messages) {
-                iterator.state = MEDIA_QUESTION_STATE_TYPE.SPAM_QUESTION;
-            }
-        } else {
-            spamUsersArr.push(userName);
-            let messages = mediaQuestionArr.filter(key => {
-                if (key.userName == userName) {
-                    return key
-                }
-            });
-            for (const iterator of messages) {
-                iterator.questionState = MEDIA_QUESTION_STATE_TYPE.SPAM_QUESTION;
-            }
-        }
-        closeDialog();
-        showMediaQuestion();
-    }
-}
-
-
-
-function showMediaQuestion() {
-    let messagesTextContent = "",
-        mediaMessages = mediaQuestionArr.filter(k => {
-            if (k.questionState == MEDIA_QUESTION_STATE_TYPE.UN_READ_QUESTION || k.questionState == MEDIA_QUESTION_STATE_TYPE.READ_QUESTION) {
-                return k;
-            }
-        });
-    for (const iterator of mediaMessages) {
-
-        let filePosition = iterator.questionPointer;
-        if (iterator.questionType == MEDIA_MIME_TYPE.IMAGE.name) {
-            filePosition = 1;
-        } else if (iterator.questionType == MEDIA_MIME_TYPE.SLIDE.name) {
-            filePosition++;
-        } else if (iterator.questionType == MEDIA_MIME_TYPE.MOVIE.name) {
-            filePosition = toHoursAndMinutes(filePosition);
-        }
-        messagesTextContent += '<div class="media_question_data">'
-            + '<div class="question_media_info">'
-            + '<div class="question_info_div">'
-            + '<span class="question_info_item">'
-            + '<span class="question_thumb_icon" title="نام کاربر"><img src="./i/user.svg"></span>'
-            + `<span class="question_info_txt">${iterator.userName}</span>`
-            + '</span>'
-            + '<span class="question_info_item">'
-            + '<span class="question_thumb_icon" title="زمان ارسال"><img src="./i/time.svg"></span>'
-            + `<span class="question_info_txt">${iterator.questionDateTime}</span>`
-            + '</span>'
-            + '</div>'
-
-            + '<div class="question_info_div">'
-            + '<span class="question_info_item">'
-            + '<span class="question_thumb_icon" title="نام فایل"><img src="./i/file.svg"></span>'
-            + `<span class="question_info_txt">${iterator.fileName}</span>`
-            + '</span>'
-            + '<span class="question_info_item">'
-            + '<span class="question_thumb_icon" title="موقعیت"><img src="./i/hashtag.svg"></span>'
-            + `<span class="question_info_txt">${filePosition}</span>`
-            + '</span></div>'
-
-            + '</div><div class="question_media_content"><div class="question_media_text">'
-            + `<p class="question_text_mode_1" onclick="ntrx.showTextQuestion(this)" data-text-state="1">${iterator.questionTextContent}</p>`
-            + '</div><div class="question_media_bt">'
-            + `<span class="thumb_bt bg-css-green" data-question-id="${iterator.questionId}" data-username="${iterator.userName}" onclick="ntrx.showMediaAnswerQuestion(this)" title="نمایش"><img src="./i/eye2.svg"></span>`
-            + `<span class="thumb_bt bg-css-orange" data-question-id="${iterator.questionId}" data-username="${iterator.userName}" onclick="ntrx.reportSpamQuestion(this)" title="اسپم"><img src="./i/spider.svg"></span>`
-            + `<span class="thumb_bt bg-css-red" data-question-id="${iterator.questionId}" data-username="${iterator.userName}" onclick="ntrx.deleteQuestion(this)" title="حذف"><img src="./i/delete.svg"></span>`
-            + '</div></div></div>';
-    }
-    g("#media_question_list_div").innerHTML = messagesTextContent;
-}
-
-ntrx.showTextQuestion=function (evt) {
-    let textState = evt.getAttribute("data-text-state");
-    switch (textState) {
-        case "1":
-            evt.setAttribute("data-text-state", "2");
-            evt.classList.add("question_text_mode_2");
-            evt.classList.remove("question_text_mode_1");
-            break;
-        case "2":
-            evt.setAttribute("data-text-state", "1");
-            evt.classList.add("question_text_mode_1");
-            evt.classList.remove("question_text_mode_2");
-            break;
-    }
-}
-
-ntrx.showMediaAnswerQuestion=function (evt) {
-    let questionID = evt.getAttribute("data-question-id"),
-        question = getKeyByValue(mediaQuestionArr, "questionId", questionID);
-    if (question) {
-        question.questionState = MEDIA_QUESTION_STATE_TYPE.READ_QUESTION;
-        switch (question.questionType) {
-            case MEDIA_MIME_TYPE.IMAGE.name:
-                showImageMedia(question.fileAddress, question.fileAddress, true, question.questionTextContent);
-                break;
-            case MEDIA_MIME_TYPE.SLIDE.name:
-                showSlideMedia(question.fileAddress, true, question.questionTextContent);
-                // console.log("question.questionPointer : ", question.questionPointer, "question.fileAddress : ", question.fileAddress);
-                hosthostSlideSupporterPageIndex = question.questionPointer;
-                changeSlidePage(question.questionPointer, question.fileAddress);
-                // console.log("question.questionPointer : " , question.questionPointer);
-                break;
-            case MEDIA_MIME_TYPE.MOVIE.name:
-                showVideoMedia(question.fileAddress, true, question.questionTextContent);
-                hostVideoElem.currentTime = question.questionPointer;
-                showVideoTime();
-                break;
-        }
-    }
-    showMediaQuestion();
-}
