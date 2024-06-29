@@ -275,7 +275,7 @@ function processReceivedMsg(j, id) {
 //                                        }
                                     }
                                 };
-                                console.log(res.data.latestMedia.isPause);
+//                                console.log(res.data.latestMedia.isPause);
                                 supporterEncryptAgent(CMD.PARTICIPANT_PASS_ACK, res);
                             }
                             break;
