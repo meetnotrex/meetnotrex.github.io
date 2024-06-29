@@ -1,0 +1,54 @@
+#modal_div{
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    position:fixed;
+    z-index: 8500;
+    width: 100%;
+    height: 100%;
+    background-color: #ffffffef;
+    top: 0;
+    left: 0;
+}
+#modal_dialog{
+    display: flex;
+    flex-direction: column;
+    width: fit-content;
+    max-width: calc(100vw - 20px);
+    height: fit-content;
+    max-height: calc(100vh - 30px);
+    padding: 9px;
+    /*border: 2px solid gray;*/
+    box-shadow: 0 0px 13px 0 rgb(0 0 0 / 20%), 0 1px 15px 0 rgb(0 0 0 / 19%);
+    background-color: white;
+    border-radius: 10px;
+}
+/*#dialog_control{
+    display: flex;
+}*/
+#modal_dialog>div{
+    width: 100%;
+    display: flex;
+    margin-top: 9px;
+    flex-direction: column;
+}
+#dialog_body{
+    flex-direction: column;
+    margin: 10px 0;
+    overflow-x: hidden;
+    overflow-y: auto;
+}
+#modal_dialog .bt{
+    line-height: 30px;
+    width: 100%;
+    margin: 3px;
+}
+#dialog_title{
+    font-size: 19px;
+}
+#modal_dialog textarea{
+    resize: none;
+    width: 100%;
+    min-height: 150px;
+    padding: 10px;
+}
