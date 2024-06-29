@@ -495,7 +495,8 @@ function processUnpackHtmlMessage(userType, body, customerMsgNum, viewerUsername
             //'<span class="name">' + (isSupporterType ? ' کارشناس مشاور ' : ' مشتری ') + '</span>' +
             '<span class="name">' + viewerUsername + '</span>' +
             (!isSupporterType && !amICustomer ?
-                '<span class="unlockbt button_ctr bg-css-darkblue" onclick="ntrx.unlockPm(this)">نمایش عمومی</span>' : '') +
+            '<span class="unlockbt button_ctr bg-css-darkblue" onclick="ntrx.unlockPm(this)">نمایش عمومی</span>' : '') +
+            '<img src="./i/' + (isSupporterType ? 'support-48.png' : 'user_chat.png') + '">'+
             '</div>';
         body.forEach(function (e) {
             if (e[0] === "span") {

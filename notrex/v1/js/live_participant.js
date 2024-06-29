@@ -706,7 +706,7 @@ function processUnpackHtmlMessage(userType, body, customerMsgNum, viewerUsername
             '<div class="msg_header">' +
             //'<span class="name">' + (isSupporterType ? ' کارشناس مشاور ' : ' مشتری ') + '</span>' +
             '<span class="name">' + viewerUsername + '</span>' +
-            '<img src="./i/' + (isSupporterType ? 'support-48.png"' : 'user_chat.png') + '>'+
+            '<img src="./i/' + (isSupporterType ? 'support-48.png' : 'user_chat.png') + '">'+
             '</div>';
         body.forEach(function (e) {
             if (e[0] === "span") {
