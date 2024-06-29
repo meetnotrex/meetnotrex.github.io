@@ -1016,7 +1016,9 @@ hr {
 .name {
     top: 3px;
     left: 5px;
-    direction: ltr
+    direction: ltr;
+        color: gray;
+    font-size: large;
 }
 
 .vi_sp {
@@ -1139,9 +1141,11 @@ background-color: #f4f4f4;
 
 .msg {
     padding: 5px;
-    border: 2px solid darkgray;
+    /*border: 2px solid darkgray;*/
     border-radius: 10px;
-    margin: 10px 0
+    margin: 10px 0;
+    background: white;
+    box-shadow: 0 0 5px darkgray;
 }
 
 /*.msg.supporter .msg_header {
@@ -1166,8 +1170,6 @@ background-color: #f4f4f4;
     overflow: hidden;
     text-overflow: ellipsis;
     max-height: 25px;
-    color: gray;
-    font-size: large;
 }
 
 .msg_txt {
