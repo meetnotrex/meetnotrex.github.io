@@ -305,37 +305,37 @@ function processReceivedMsg(j, id) {
                                 if (j.data.supporterVideoSize) {
                                     setVideoSizeFromSupporterCmd(j.data.supporterVideoSize);
                                 }
-                                //console.log("j.data.survey",j.data.survey);
-                                if (j.data.survey) {
-                                    getSupporterQuestionArr(j.data.survey);
-                                }
-                                if (j.data.latestMedia) {
-                                    showMediaStorage(j.data.latestMedia.media, false);
-                                    console.log("j.data.latestMedia.media.mimeType : " , j.data.latestMedia);
-                                    switch (j.data.latestMedia.media.mimeType) {
-                                        case MEDIA_MIME_TYPE.IMAGE.name:
-                                            break;
-                                        case MEDIA_MIME_TYPE.MOVIE.name:
-                                            hostVideoElem.currentTime = j.data.latestMedia.pointer;
-                                            console.log("j.data.latestMedia.isPause", j.data.latestMedia.isPause);
-                                            if (j.data.latestMedia.isPause) {
-                                                console.log("pause");
-                                                hostVideoElem.pause();
-                                            } else {
-                                                console.log("play");
-                                                hostVideoElem.play();
-                                            }
-                                            showVideoTime();
-                                            break;
-                                        case MEDIA_MIME_TYPE.SLIDE.name:
-                                            console.log("j.data.latestMedia.pointer : ", j.data.latestMedia.pointer);
-                                            changeSlidePage(j.data.latestMedia.pointer, slideFileArr);
-                                            slideLatestPageChecked = j.data.latestMedia.pointer;
-                                            hosthostSlideSupporterPageIndex = j.data.latestMedia.pointer;
-                                            hostThisPage = j.data.latestMedia.pointer
-                                            break;
-                                    }
-                                }
+//*** this is commented cause of not impelemted survey and slides this will be uncomment with the below codes                                                                                
+//                                if (j.data.survey) {
+//                                    getSupporterQuestionArr(j.data.survey);
+//                                }
+//                                if (j.data.latestMedia) {
+//                                    showMediaStorage(j.data.latestMedia.media, false);
+//                                    console.log("j.data.latestMedia.media.mimeType : " , j.data.latestMedia);
+//                                    switch (j.data.latestMedia.media.mimeType) {
+//                                        case MEDIA_MIME_TYPE.IMAGE.name:
+//                                            break;
+//                                        case MEDIA_MIME_TYPE.MOVIE.name:
+//                                            hostVideoElem.currentTime = j.data.latestMedia.pointer;
+//                                            console.log("j.data.latestMedia.isPause", j.data.latestMedia.isPause);
+//                                            if (j.data.latestMedia.isPause) {
+//                                                console.log("pause");
+//                                                hostVideoElem.pause();
+//                                            } else {
+//                                                console.log("play");
+//                                                hostVideoElem.play();
+//                                            }
+//                                            showVideoTime();
+//                                            break;
+//                                        case MEDIA_MIME_TYPE.SLIDE.name:
+//                                            console.log("j.data.latestMedia.pointer : ", j.data.latestMedia.pointer);
+//                                            changeSlidePage(j.data.latestMedia.pointer, slideFileArr);
+//                                            slideLatestPageChecked = j.data.latestMedia.pointer;
+//                                            hosthostSlideSupporterPageIndex = j.data.latestMedia.pointer;
+//                                            hostThisPage = j.data.latestMedia.pointer
+//                                            break;
+//                                    }
+//                                }
 								//console.log("setPublicChatMode j.data:",j.data,"j.data.publicchatmode:",j.data.publicchatmode);
                                 setPublicChatMode(j.data.publicchatmode);
                                 firstCheck.classList.add("hide");

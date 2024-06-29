@@ -264,13 +264,15 @@ function processReceivedMsg(j, id) {
                                 var res = {
                                     receiverId: id, data: {
                                         talkSession: j.data.talkSession, state: "ok", supporterVideoSize: supporterVideoSize,
-                                        lastPublicOfferLink: b64EncodeUnicode(lastPublicOfferLink), survey: getpreviusQuestion(), publicchatmode: publicChatMode,
-                                        latestMedia: {
-                                            media: mediaHistory.latestMediaData,
-                                            pointer: (mediaHistory.latestMediaData && mediaHistory.latestMediaData.mimeType == MEDIA_MIME_TYPE.MOVIE.name) ? hostVideoElem.currentTime :
-                                                (mediaHistory.history[mediaHistory.latestMediaName]) ? mediaHistory.history[mediaHistory.latestMediaName].pointer : null,
-                                            isPause: (hostVideoElem && hostVideoElem.paused) ? true : false
-                                        }
+                                        lastPublicOfferLink: b64EncodeUnicode(lastPublicOfferLink), publicchatmode: publicChatMode
+//*** this is commented cause of not impelemted survey and slides this will be uncomment with the below codes 
+//                                        ,survey: getpreviusQuestion(),
+//                                        latestMedia: {
+//                                            media: mediaHistory.latestMediaData,
+//                                            pointer: (mediaHistory.latestMediaData && mediaHistory.latestMediaData.mimeType == MEDIA_MIME_TYPE.MOVIE.name) ? hostVideoElem.currentTime :
+//                                                (mediaHistory.history[mediaHistory.latestMediaName]) ? mediaHistory.history[mediaHistory.latestMediaName].pointer : null,
+//                                            isPause: (hostVideoElem && hostVideoElem.paused) ? true : false
+//                                        }
                                     }
                                 };
                                 console.log(res.data.latestMedia.isPause);
