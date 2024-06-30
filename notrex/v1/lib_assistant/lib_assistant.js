@@ -339,8 +339,10 @@ function checkArrayHaveNotDuplicatedIndex(mainArr,notDupliacatedKeyValue){
 //                s61v.textContent = r[5] + " بیننده";//"آنلاینم با " +
                 s61Class(s61i, "s61anim");
                 s61TimeStartLive.textContent = r.viewerqty + " بیننده";
-				s61TimeStartLive.classList.add("s61livemode");
+		s61TimeStartLive.classList.add("s61livemode");
+                s61Class(s61w,"s61_blink");
             } else {
+                s61Class(s61w,"s61_blink",1);
 				//s61n.textContent = r.title;
 //                    s61s.textContent = "الان لایو نیستم اینجا یک نگاه به ساعت برنامه هام بنداز";
 //                s61Hide(s61v);
@@ -356,7 +358,7 @@ function checkArrayHaveNotDuplicatedIndex(mainArr,notDupliacatedKeyValue){
             s61SupporterName.textContent = r.supportername;
 
             textFitSizer2(s61n);
-		    textFitSizer2(s61InfoState,true,40);
+            textFitSizer2(s61InfoState,true,40);
 		   
         }, 800);
     }
