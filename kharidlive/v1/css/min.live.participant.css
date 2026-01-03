@@ -1,0 +1,11 @@
+#report_option_container {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-wrap: wrap;
+}
+
+.participant_report_stream_option {
+    width: 100%;
+    padding: 10px 20px;
+}
