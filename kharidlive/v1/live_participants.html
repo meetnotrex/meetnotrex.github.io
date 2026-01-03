@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html>
+
+    <head>
+        <title>اتاق مشاوره لایو</title>
+        <link rel="icon" type="image/x-icon" href="./i/favicon.png">
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <meta name="robots" content="noindex">
+        <!--        <link rel="stylesheet" type="text/css" href="css/reset_flex.css"/>
+                    <link rel="stylesheet" type="text/css" href="css/color_pallet.css"/>
+                    <link rel="stylesheet" type="text/css" href="css/toastify.css"/>
+                    <link rel="stylesheet" type="text/css" href="css/dialog.css"/>
+                    <link rel="stylesheet" type="text/css" href="css/live.css"/>-->
+        <link rel="stylesheet" type="text/css" href="css/min.live.css" />
+    </head>
+
+    <body>
+        <div class="live_div">
+            <div class="live_wrapper">
+                <div class="chat_div">
+                    <div class="chat_sub_div">
+                        <div class="cam_div">
+                            <div id="supporter_video" data-mode="1" class="video_mode1">
+                                <video autoplay playsinline></video>
+                                <span class="name">کارشناس مشاور</span>
+                                <div class="vi_sp">
+                                    <div>
+                                        <img src="./i/eye.svg">
+                                        <span id="viewer_count"></span>
+                                    </div>
+                                    <!--<span id="webcam_screen_supporter_switch_bt" class="middle_bt thumb_bt1 bg-css-lightgray1" title="سویچ کردن بین دوربین و شیر کردن صفحه نمایش">-->
+                                    <span id="video_size_change_supporter_bt" class="middle_bt"
+                                          title="حالت های نمایش ویدیو"><img src="./i/maximize.svg"></span>
+                                </div>
+                            </div>
+                            <div id="customer_video" data-mode="1" class="hide video_mode1">
+                                <video autoplay playsinline></video>
+                                <span class="name">مشتری</span>
+                                <div class="vi_sp" style="flex-direction: row-reverse;">
+                                    <span id="video_size_change_customer_bt" class="middle_bt"
+                                          title="حالت های نمایش ویدیو"><img src="./i/maximize.svg"></span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="controller_div hide"> <!-- ! remove hide class -->
+                            <div class="dot_menu">
+                                <span id="more_bt" class="thumb_bt" title="موارد بیشتر"><img
+                                        src="./i/more_vert_white.svg">
+                                </span>
+                                <div class="dot_menu_open hide" style="max-height: 210px;">
+                                    <span id="total_refresh_bt"
+                                          class="text_bt fit_width_auto_height_bt"
+                                          title="نوسازی استریم ها و اتاق">
+                                        <img src="./i/total_refresh.svg">
+                                        <span>نوسازی ارتباط</span>
+                                    </span>
+                                    <span id="webcam_screen_refresh_bt"
+                                          class="text_bt fit_width_auto_height_bt"
+                                          title="رفرش کردن تصویر">
+                                        <img src="./i/camera_refresh.svg">
+                                        <span>رفرش تصویر خودم</span>
+                                    </span>
+                                    <span id="webcam_screen_switch_bt"
+                                          class="text_bt fit_width_auto_height_bt"
+                                          title="سویچ کردن بین دوربین و شیر کردن صفحه نمایش">
+                                        <img src="./i/cameraswitch_white.svg">
+                                        <span>دوربین یا اسکرین</span>
+                                    </span>
+
+<!--                                    <span id="min_max_bt" class="text_bt fit_width_auto_height_bt bg-css-dirtyyellowgreen" 
+                                          title="بزرگ نمایی و کوچک نمایی"> 
+                                        <img src="./i/expand.svg"> 
+                                        <span>بزرگنمایی</span> 
+                                    </span> -->
+
+                                    <a href="https://kharidlive.ir/etc/help" target="_blank" style="display:grid"
+                                       onclick="closeDotMenuOpen()">
+                                        <span id="help_bt" class="text_bt" title="راهنما">
+                                            <img src="./i/help.svg">
+                                            <span>راهنما</span>
+                                        </span>
+                                    </a>
+                                    <!--                                <span id="close_live_bt" class="text_bt fit_width_auto_height_bt"
+                                                                        title="خارج شدن از محیط لایو"><img src="./i/exit.svg"><span>خروج</span></span>-->
+                                </div>
+                            </div>
+                            <span id="close_live_bt" class="thumb_bt" title="پایان و خروج"><img
+                                    src="./i/exit.svg"></span>
+                            <!--<span id="close_customer_bt" class="thumb_bt" title="خاتمه دادن به گفتگو"><img src="./i/disconnect.svg"></span>-->
+<!--                            <span id="pin_bt" class="thumb_bt"
+                                  title="مشاهده پیام "><img src="./i/eye.svg"></span>-->
+                                                        <span id="min_max_bt" class="thumb_bt"
+                                  title="بزرگ نمایی و کوچک نمایی"><img src="./i/expand.svg"></span>
+                            <!--                        <a href="https://kharidlive.ir/etc/help" target="_blank" style="display:flex"><span id="help_bt"
+                                                            class="thumb_bt bg-css-lightblue" title="راهنما"><img src="./i/help.svg"></span></a>-->
+                            <span id="mobile_pm_bt" class="thumb_bt m_show" title="مشاهده سایت یا پیام ها"><img
+                                    src="./i/monitor.svg"><span class="hide">0</span></span>
+                            <span id="add_remove_request_bt" class="thumb_bt" title="ورود به kharidlive انتظار"><img
+                                    src="./i/tap.svg"></span>
+                        </div>
+                    </div>
+                    <div id="talk_number" class="hide">
+                        <p>شماره انتظار برای گفتگو: <span></span></p>
+                    </div>
+                    <div id="chat_sub2" class="chat_sub_div">
+
+                        <div id="text_div"></div>
+                        <div id="etc_div">
+                            <span id="survey_bt" class="text_bt hide"
+                                  title="مشاهده kharidlive سوالات و نظر سنجی ها"><span>نظر سنجی و سوالات</span> <span
+                                    id="survey_qty">0</span></span>
+                        </div>
+                        <div class="pm_div hide">
+                            <span id="pm_clear_bt" class="text_bt" title="پاکسازی چت باکس"><img src="./i/chat_eraser.svg"></span>
+                            <div id="message" contenteditable></div>
+                            <div class="chat_bt_div">
+                                <!--                            <span id="lock_bt" class="text_bt bg-css-darkpurple"
+                                                                title="با قفل  شدن اگر پیام کارشناس پیشنهادی وجود داشت بصورت اتوماتیک باز نخواهد شد"><img
+                                                                    src="./i/lock.svg"><span>قفل</span></span>-->
+                                <!--                            <span id="offer_bt" class="text_bt2"
+                                                                title="پیشنهاد دادن آیتم محصول موجود به کارشناس مشاور"><img
+                                                                    src="./i/offer.svg"></span>-->
+                                <span id="private_bt" class="text_bt2" title="ارسال پیام به کارشناس مشاور"><img
+                                        src="./i/send.svg"></span>
+                            </div>
+                        </div>
+
+                        <div id="survey_div" class="hide">
+                            <div id="survey_head">
+                                <span>kharidlive سوالات :</span>
+                                <img src="./i/close.svg" class="survey_div_close inner_close">
+                            </div>
+
+                            <div id="survey_list_div"></div>
+                        </div>
+
+                        <div class="slogan">
+                            <a href="https://kharidlive.ir/" target="_blank">
+                                <img src="./i/kharidlive_logo_blue.svg">
+                                <!--                            <span>ناترکس، قدرت ارتباط نزدیکتر</span>-->
+                                <!--<span>لایو ناترکس، اعتماد، آگاهی، انتخاب درست</span>-->
+                                <span>خرید لایو برای آگاهی، اعتماد، انتخاب درست</span>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="middle_wrapper">
+                    <div class="iframe_div m_hide">
+                        <iframe id="iframe"></iframe>
+                        <span id="offer_bt" class="thumb_bt outer_bt"
+                              title="پیشنهاد دادن آیتم محصول موجود به مشتری"><img
+                                src="./i/offer.svg"></span>
+                        <span id="product_favorite_bt" class="thumb_bt outer_bt"
+                              title="اضافه کردن آیتم به kharidlive علاقه مندی"><img src="./i/heart_plus.svg"></span>
+                        <span id="favorite_list_bt" class="thumb_bt outer_bt" title="مشاهده kharidlive علاقه مندی"><a
+                                href="./favorite_list.html" target="_blank"><img src="./i/favorite.svg"></a></span>
+                    </div>
+
+                    <div id="host_media_wrapper" class="hide host_container_mode_1" data-mode="1">
+                        <div id="media_bt_container">
+                            <!--<img src="./i/close.svg" alt="بستن" id="close_host_media_bt">--> 
+                            <img src="./i/maximize.svg" alt="تغییر سایز" title="تغییر سایز" id="change_media_container_bt">
+                            <img src="./i/head_question.svg" id="ask_media_question_bt" alt="سوال داری بپرس" title="سوال داری بپرس">
+                        </div>
+
+                        <div id="media_container">
+                        </div>
+                    </div>
+
+
+                </div>
+            </div>
+        </div>
+        <div id="first_check" class="hide">
+            <div>
+                <p>لطفا کمی تامل کنید تا اطلاعات بررسی شود</p><br>
+                <p>بعد از بررسی در صورت صحت اطلاعات وارد اتاق خواهید شد</p>
+            </div>
+        </div>
+
+        <script src="js/not_include.js"></script>
+        <script src="js/lib.jsencrypt.min.js"></script>
+        <script src="js/lib.adapter.min.js"></script>
+        <script src="js/lib.toastify.js"></script>
+        <script src="js/lib.paris.js"></script>
+        <script src="js/general_tools.js"></script>
+        <script src="js/live_general_tools.js"></script>
+        <script src="js/live_score.js"></script>
+        <script src="js/live_participant.js"></script>
+        <script src="js/tools_videoroom.js"></script>
+        <script src="js/tools_customer.js"></script>
+
+
+        <!--<script src="js/min.participant.js"></script>-->
+        <script src="js/host_video_player_script.js"></script>
+        <script src="js/host_slide_script.js"></script>
+        <script src="js/host_image_script.js"></script>
+        <script src="js/host_voice_script.js"></script>
+
+        <script src="js/live_host_storage.js"></script>
+
+    </body>
+
+</html>
